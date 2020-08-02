@@ -14,7 +14,6 @@ fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = App::new("memo")
-        .subcommand(SubCommand::with_name("new"))
         .subcommand(
             SubCommand::with_name("edit")
                 .about("Creates a new memo that obsoletes the specified memo")
@@ -24,6 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .required(true),
                 ),
         )
+        .subcommand(SubCommand::with_name("new").about("Creates a new memo"))
         .get_matches();
     match matches.subcommand() {
         ("new", _) => {
