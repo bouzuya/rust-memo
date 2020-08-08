@@ -6,9 +6,13 @@ use page_id::PageId;
 use std::fs::{read_to_string, File};
 use std::io::Write;
 
+fn to_file_name(page_id: &PageId) -> String {
+    format!("{}.md", page_id.to_string())
+}
+
 fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let id = PageId::new().expect("This application is out of date.");
-    let file_name = format!("{}.md", id.to_string());
+    let page_id = PageId::new().expect("This application is out of date.");
+    let file_name = to_file_name(&page_id);
     let mut file = File::create(&file_name)?;
     writeln!(file, "{}", content)?;
     file.flush()?;
@@ -17,7 +21,7 @@ fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> 
 
 fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
     let page_id = PageId::from_str(id_as_string).expect("invalid ID format");
-    let old_file_name = format!("{}.md", page_id.to_string());
+    let old_file_name = to_file_name(&page_id);
     let old = read_to_string(&old_file_name)?;
     let header = old.lines().next().unwrap_or("# ");
     let footer = format!(
@@ -81,7 +85,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
         std::io::ErrorKind::NotFound,
         "invalid page_id format",
     ))?;
-    let page_file_name = format!("./{}.md", page_id.to_string());
+    let page_file_name = to_file_name(&page_id);
     let md = std::fs::read_to_string(page_file_name)?;
     let parser = pulldown_cmark::Parser::new(&md);
     let mut html = String::new();
