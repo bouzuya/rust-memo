@@ -145,6 +145,29 @@ async fn titles() -> std::io::Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
+async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
+    let title_map = read_title_map()?;
+    let title = &params.0;
+    if let Some(page_ids) = title_map.get(title) {
+        let mut html = String::new();
+        html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
+        html.push_str(&format!("<h1>/titles/{}</h1>", title));
+        html.push_str("<ul>");
+        for page_id in page_ids.iter() {
+            html.push_str(&format!(
+                "<li><a href=\"/pages/{}\">{}</a></li>",
+                page_id.to_string(),
+                page_id.to_string()
+            ));
+        }
+        html.push_str("</ul>");
+        html.push_str("</body></html>");
+        Ok(HttpResponse::Ok().content_type("text/html").body(html))
+    } else {
+        Ok(HttpResponse::NotFound().body("Not Found"))
+    }
+}
+
 #[actix_rt::main]
 async fn run_server() -> std::io::Result<()> {
     actix_web::HttpServer::new(|| {
@@ -153,6 +176,7 @@ async fn run_server() -> std::io::Result<()> {
             .route("/pages", web::get().to(pages))
             .route("/pages/{id}", web::get().to(page))
             .route("/titles", web::get().to(titles))
+            .route("/titles/{title}", web::get().to(title))
     })
     .bind("127.0.0.1:3000")?
     .run()
