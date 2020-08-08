@@ -10,6 +10,23 @@ fn to_file_name(page_id: &PageId) -> String {
     format!("{}.md", page_id.to_string())
 }
 
+fn to_page_url(page_id: &PageId) -> String {
+    format!(
+        "/pages/{}",
+        percent_encoding::utf8_percent_encode(
+            &page_id.to_string(),
+            percent_encoding::NON_ALPHANUMERIC,
+        )
+    )
+}
+
+fn to_title_url(title: &str) -> String {
+    format!(
+        "/titles/{}",
+        percent_encoding::utf8_percent_encode(title, percent_encoding::NON_ALPHANUMERIC)
+    )
+}
+
 fn read_title(page_id: &PageId) -> String {
     use std::io::prelude::*;
     let file = match std::fs::File::open(&to_file_name(page_id)) {
@@ -56,9 +73,9 @@ fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::error:
         content.truncate(index);
     }
     content.push_str(&format!(
-        "\n## Obsoletes\n\n- [{}](/pages/{})",
+        "\n## Obsoletes\n\n- [{}]({})",
         page_id.to_string(),
-        page_id.to_string()
+        to_page_url(&page_id)
     ));
     let new_file_name = create_new_file(&content)?;
     Ok((old_file_name, new_file_name))
@@ -98,10 +115,10 @@ async fn pages() -> std::io::Result<HttpResponse> {
         page_ids
             .iter()
             .map(|page_id| {
-                let id_as_string = page_id.to_string();
                 format!(
-                    "<li><a href=\"/pages/{}\">{}</a></li>",
-                    id_as_string, id_as_string
+                    "<li><a href=\"{}\">{}</a></li>",
+                    to_page_url(&page_id),
+                    page_id.to_string()
                 )
             })
             .collect::<Vec<String>>()
@@ -134,8 +151,8 @@ async fn titles() -> std::io::Result<HttpResponse> {
         html.push_str(&format!("<h2>{}</h2><ul>", title));
         for page_id in page_ids.iter() {
             html.push_str(&format!(
-                "<li><a href=\"/pages/{}\">{}</a></li>",
-                page_id.to_string(),
+                "<li><a href=\"{}\">{}</a></li>",
+                to_page_url(&page_id),
                 page_id.to_string()
             ));
         }
@@ -151,12 +168,12 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     if let Some(page_ids) = title_map.get(title) {
         let mut html = String::new();
         html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
-        html.push_str(&format!("<h1>/titles/{}</h1>", title));
+        html.push_str(&format!("<h1>{}</h1>", to_title_url(&title)));
         html.push_str("<ul>");
         for page_id in page_ids.iter() {
             html.push_str(&format!(
-                "<li><a href=\"/pages/{}\">{}</a></li>",
-                page_id.to_string(),
+                "<li><a href=\"{}\">{}</a></li>",
+                to_page_url(&page_id),
                 page_id.to_string()
             ));
         }

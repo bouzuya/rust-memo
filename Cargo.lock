@@ -1225,6 +1225,7 @@ dependencies = [
  "actix-web",
  "chrono",
  "clap",
+ "percent-encoding",
  "pulldown-cmark",
 ]
 
