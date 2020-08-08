@@ -1,6 +1,6 @@
 use chrono::prelude::*;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PageId(i64);
 
 impl PageId {

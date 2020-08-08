@@ -26,22 +26,53 @@ fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::error:
     Ok((old_file_name, new_file_name))
 }
 
+fn list_ids() -> std::io::Result<Vec<PageId>> {
+    let mut ids = vec![];
+    for res in std::fs::read_dir(".")? {
+        let dir_entry = res?;
+        let file_type = dir_entry.file_type()?;
+        if !file_type.is_file() {
+            continue;
+        }
+        let path = dir_entry.path();
+        let id_as_string = match path.file_stem().and_then(|os_str| os_str.to_str()) {
+            Some(x) => x,
+            None => continue,
+        };
+        if let Some(page_id) = PageId::from_str(id_as_string) {
+            ids.push(page_id);
+        }
+    }
+    ids.sort();
+    Ok(ids)
+}
+
 async fn index() -> impl actix_web::Responder {
     HttpResponse::Found()
         .header(actix_web::http::header::LOCATION, format!("/permalinks"))
         .finish()
 }
 
-async fn permalinks() -> actix_web::Result<HttpResponse> {
-    let mut entries = std::fs::read_dir(".")?
-        .map(|res| res.map(|e| e.path().to_str().unwrap().to_owned()))
-        .collect::<Result<Vec<String>, std::io::Error>>()?;
-    entries.sort();
-    let s = entries.join("\n");
-    Ok(HttpResponse::Ok().body(s))
+async fn permalinks() -> std::io::Result<HttpResponse> {
+    let page_ids = list_ids()?;
+    let s = format!(
+        "<html><head><title>/permalinks</title><body><h1>/permalinks</h1><ul>{}</ul></body></html>",
+        page_ids
+            .iter()
+            .map(|page_id| {
+                let id_as_string = page_id.to_string();
+                format!(
+                    "<li><a href=\"/permalinks/{}\">{}</a></li>",
+                    id_as_string, id_as_string
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("\n")
+    );
+    Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-async fn permalink(id: web::Path<(String,)>) -> actix_web::Result<HttpResponse> {
+async fn permalink(id: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let content = std::fs::read_to_string(format!("./{}.md", id.0))?;
     Ok(HttpResponse::Ok().body(content))
 }
