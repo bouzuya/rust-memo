@@ -10,6 +10,35 @@ fn to_file_name(page_id: &PageId) -> String {
     format!("{}.md", page_id.to_string())
 }
 
+fn read_title(page_id: &PageId) -> String {
+    use std::io::prelude::*;
+    let file = match std::fs::File::open(&to_file_name(page_id)) {
+        Ok(file) => file,
+        Err(_) => return String::new(),
+    };
+    let mut reader = std::io::BufReader::new(file);
+    let mut buffer = String::new();
+    match reader.read_line(&mut buffer) {
+        Ok(_) => {}
+        Err(_) => return String::new(),
+    };
+    if buffer.starts_with("# ") {
+        return buffer[2..].trim().to_owned();
+    } else {
+        return String::new();
+    }
+}
+
+fn read_title_map() -> std::io::Result<std::collections::BTreeMap<String, Vec<PageId>>> {
+    let mut title_map = std::collections::BTreeMap::new();
+    let page_ids = list_ids()?;
+    for &page_id in page_ids.iter() {
+        let title = read_title(&page_id);
+        title_map.entry(title).or_insert(vec![]).push(page_id);
+    }
+    Ok(title_map)
+}
+
 fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> {
     let page_id = PageId::new().expect("This application is out of date.");
     let file_name = to_file_name(&page_id);
@@ -96,6 +125,26 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
+async fn titles() -> std::io::Result<HttpResponse> {
+    let title_map = read_title_map()?;
+    let mut html = String::new();
+    html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
+    html.push_str("<h1>/titles</h1>");
+    for (title, page_ids) in title_map.iter() {
+        html.push_str(&format!("<h2>{}</h2><ul>", title));
+        for page_id in page_ids.iter() {
+            html.push_str(&format!(
+                "<li><a href=\"/pages/{}\">{}</a></li>",
+                page_id.to_string(),
+                page_id.to_string()
+            ));
+        }
+        html.push_str("</ul>");
+    }
+    html.push_str("</body></html>");
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
+}
+
 #[actix_rt::main]
 async fn run_server() -> std::io::Result<()> {
     actix_web::HttpServer::new(|| {
@@ -103,6 +152,7 @@ async fn run_server() -> std::io::Result<()> {
             .route("/", web::get().to(index))
             .route("/pages", web::get().to(pages))
             .route("/pages/{id}", web::get().to(page))
+            .route("/titles", web::get().to(titles))
     })
     .bind("127.0.0.1:3000")?
     .run()
