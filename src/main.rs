@@ -1,12 +1,14 @@
+mod page_id;
+
 use actix_web::{web, HttpResponse};
-use chrono::prelude::*;
 use clap;
+use page_id::PageId;
 use std::fs::{read_to_string, File};
 use std::io::Write;
 
 fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let now = Utc::now();
-    let file_name = format!("{}.md", now.format("%Y%m%dT%H%M%SZ"));
+    let id = PageId::new().expect("This application is out of date.");
+    let file_name = format!("{}.md", id.to_string());
     let mut file = File::create(&file_name)?;
     writeln!(file, "{}", content)?;
     file.flush()?;
@@ -67,7 +69,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         ("edit", Some(sub_matches)) => {
             if let Some(id) = sub_matches.value_of("ID") {
-                let old_file_name = format!("{}.md", id);
+                let page_id = PageId::from_str(id).expect("invalid ID format");
+                let old_file_name = format!("{}.md", page_id.to_string());
                 let old = read_to_string(&old_file_name)?;
                 let header = old.lines().next().unwrap_or("# ");
                 let footer = format!("## Obsoletes\n\n- {}", old_file_name);
