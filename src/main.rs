@@ -20,7 +20,11 @@ fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::error:
     let old_file_name = format!("{}.md", page_id.to_string());
     let old = read_to_string(&old_file_name)?;
     let header = old.lines().next().unwrap_or("# ");
-    let footer = format!("## Obsoletes\n\n- {}", old_file_name);
+    let footer = format!(
+        "## Obsoletes\n\n- [{}](/pages/{})",
+        page_id.to_string(),
+        page_id.to_string()
+    );
     let content = format!("{}\n\n{}", header, footer);
     let new_file_name = create_new_file(&content)?;
     Ok((old_file_name, new_file_name))
