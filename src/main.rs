@@ -15,6 +15,17 @@ fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> 
     Ok(file_name)
 }
 
+fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
+    let page_id = PageId::from_str(id_as_string).expect("invalid ID format");
+    let old_file_name = format!("{}.md", page_id.to_string());
+    let old = read_to_string(&old_file_name)?;
+    let header = old.lines().next().unwrap_or("# ");
+    let footer = format!("## Obsoletes\n\n- {}", old_file_name);
+    let content = format!("{}\n\n{}", header, footer);
+    let new_file_name = create_new_file(&content)?;
+    Ok((old_file_name, new_file_name))
+}
+
 async fn index() -> impl actix_web::Responder {
     HttpResponse::Found()
         .header(actix_web::http::header::LOCATION, format!("/permalinks"))
@@ -64,20 +75,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_matches();
     match matches.subcommand() {
         ("new", _) => {
-            let file_name = create_new_file("# ")?;
-            println!("{}", file_name);
+            let new = create_new_file("# ")?;
+            println!("{}", new);
         }
         ("edit", Some(sub_matches)) => {
-            if let Some(id) = sub_matches.value_of("ID") {
-                let page_id = PageId::from_str(id).expect("invalid ID format");
-                let old_file_name = format!("{}.md", page_id.to_string());
-                let old = read_to_string(&old_file_name)?;
-                let header = old.lines().next().unwrap_or("# ");
-                let footer = format!("## Obsoletes\n\n- {}", old_file_name);
-                let content = format!("{}\n\n{}", header, footer);
-                let new_file_name = create_new_file(&content)?;
-                println!("{} -> {}", old_file_name, new_file_name);
-            }
+            let (old, new) = edit_file(sub_matches.value_of("ID").expect("ID required"))?;
+            println!("{} -> {}", old, new);
         }
         ("server", _) => {
             run_server()?;
