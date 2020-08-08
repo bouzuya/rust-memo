@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    <h1>{{ title }}</h1>
+    <ul>
+      {% for title in titles %}
+      <li><a href="{{ title.url }}">{{ title.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

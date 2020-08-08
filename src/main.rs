@@ -1,10 +1,54 @@
 mod page_id;
 
 use actix_web::{web, HttpResponse};
+use askama::Template;
 use clap;
 use page_id::PageId;
 use std::fs::{read_to_string, File};
 use std::io::Write;
+
+#[derive(Template)]
+#[template(path = "pages.html")]
+struct PagesTemplate<'a> {
+    title: &'a str,
+    pages: &'a [PagesItemTemplate],
+}
+
+struct PagesItemTemplate {
+    id: String,
+    url: String,
+}
+
+#[derive(Template)]
+#[template(path = "page.html")]
+struct PageTemplate<'a> {
+    title: &'a str,
+    html: String,
+}
+
+#[derive(Template)]
+#[template(path = "titles.html")]
+struct TitlesTemplate<'a> {
+    title: &'a str,
+    titles: &'a [TitlesItemTemplate],
+}
+
+struct TitlesItemTemplate {
+    title: String,
+    url: String,
+}
+
+#[derive(Template)]
+#[template(path = "title.html")]
+struct TitleTemplate<'a> {
+    title: &'a str,
+    pages: &'a [TitleItemTemplate],
+}
+
+struct TitleItemTemplate {
+    id: String,
+    url: String,
+}
 
 fn to_file_name(page_id: &PageId) -> String {
     format!("{}.md", page_id.to_string())
@@ -110,21 +154,19 @@ async fn index() -> impl actix_web::Responder {
 
 async fn pages() -> std::io::Result<HttpResponse> {
     let page_ids = list_ids()?;
-    let s = format!(
-        "<html><head><title>/pages</title><body><h1>/pages</h1><ul>{}</ul></body></html>",
-        page_ids
-            .iter()
-            .map(|page_id| {
-                format!(
-                    "<li><a href=\"{}\">{}</a></li>",
-                    to_page_url(&page_id),
-                    page_id.to_string()
-                )
-            })
-            .collect::<Vec<String>>()
-            .join("\n")
-    );
-    Ok(HttpResponse::Ok().content_type("text/html").body(s))
+    let pages = page_ids
+        .iter()
+        .map(|page_id| PagesItemTemplate {
+            id: page_id.to_string(),
+            url: to_page_url(&page_id),
+        })
+        .collect::<Vec<PagesItemTemplate>>();
+    let template = PagesTemplate {
+        title: "/pages",
+        pages: &pages,
+    };
+    let html = template.render().unwrap();
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
 async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
@@ -135,26 +177,30 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let page_file_name = to_file_name(&page_id);
     let md = std::fs::read_to_string(page_file_name)?;
     let parser = pulldown_cmark::Parser::new(&md);
-    let mut html = String::new();
-    html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
-    pulldown_cmark::html::push_html(&mut html, parser);
-    html.push_str("</body></html>");
+    let mut markdown_html = String::new();
+    pulldown_cmark::html::push_html(&mut markdown_html, parser);
+    let template = PageTemplate {
+        title: &to_page_url(&page_id),
+        html: markdown_html,
+    };
+    let html = template.render().unwrap();
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
 async fn titles() -> std::io::Result<HttpResponse> {
     let title_map = read_title_map()?;
-    let mut html = String::new();
-    html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
-    html.push_str("<h1>/titles</h1><ul>");
-    for (title, _) in title_map.iter() {
-        html.push_str(&format!(
-            "<li><a href=\"{}\">{}</a></li>",
-            to_title_url(title),
-            title
-        ));
-    }
-    html.push_str("</ul></body></html>");
+    let titles = title_map
+        .iter()
+        .map(|(title, _)| TitlesItemTemplate {
+            title: title.to_owned(),
+            url: to_title_url(&title),
+        })
+        .collect::<Vec<TitlesItemTemplate>>();
+    let template = TitlesTemplate {
+        title: "/titles",
+        titles: &titles,
+    };
+    let html = template.render().unwrap();
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
@@ -162,19 +208,18 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let title_map = read_title_map()?;
     let title = &params.0;
     if let Some(page_ids) = title_map.get(title) {
-        let mut html = String::new();
-        html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
-        html.push_str(&format!("<h1>{}</h1>", to_title_url(&title)));
-        html.push_str("<ul>");
-        for page_id in page_ids.iter() {
-            html.push_str(&format!(
-                "<li><a href=\"{}\">{}</a></li>",
-                to_page_url(&page_id),
-                page_id.to_string()
-            ));
-        }
-        html.push_str("</ul>");
-        html.push_str("</body></html>");
+        let pages = page_ids
+            .iter()
+            .map(|page_id| TitleItemTemplate {
+                id: page_id.to_string(),
+                url: to_page_url(&page_id),
+            })
+            .collect::<Vec<TitleItemTemplate>>();
+        let template = TitleTemplate {
+            title: &to_title_url(title),
+            pages: &pages,
+        };
+        let html = template.render().unwrap();
         Ok(HttpResponse::Ok().content_type("text/html").body(html))
     } else {
         Ok(HttpResponse::NotFound().body("Not Found"))
