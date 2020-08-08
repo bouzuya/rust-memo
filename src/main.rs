@@ -72,9 +72,17 @@ async fn permalinks() -> std::io::Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-async fn permalink(id: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
-    let content = std::fs::read_to_string(format!("./{}.md", id.0))?;
-    Ok(HttpResponse::Ok().body(content))
+async fn permalink(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
+    let page_id = PageId::from_str(&params.0).ok_or(std::io::Error::new(
+        std::io::ErrorKind::NotFound,
+        "invalid page_id format",
+    ))?;
+    let page_file_name = format!("./{}.md", page_id.to_string());
+    let md = std::fs::read_to_string(page_file_name)?;
+    let parser = pulldown_cmark::Parser::new(&md);
+    let mut html = String::new();
+    pulldown_cmark::html::push_html(&mut html, parser);
+    Ok(HttpResponse::Ok().body(html))
 }
 
 #[actix_rt::main]
