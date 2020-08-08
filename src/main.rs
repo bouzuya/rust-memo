@@ -22,14 +22,15 @@ fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> 
 fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
     let page_id = PageId::from_str(id_as_string).expect("invalid ID format");
     let old_file_name = to_file_name(&page_id);
-    let old = read_to_string(&old_file_name)?;
-    let header = old.lines().next().unwrap_or("# ");
-    let footer = format!(
-        "## Obsoletes\n\n- [{}](/pages/{})",
+    let mut content = read_to_string(&old_file_name)?;
+    if let Some(index) = content.find("\n## Obsoletes") {
+        content.truncate(index);
+    }
+    content.push_str(&format!(
+        "\n## Obsoletes\n\n- [{}](/pages/{})",
         page_id.to_string(),
         page_id.to_string()
-    );
-    let content = format!("{}\n\n{}", header, footer);
+    ));
     let new_file_name = create_new_file(&content)?;
     Ok((old_file_name, new_file_name))
 }
