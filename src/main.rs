@@ -49,20 +49,20 @@ fn list_ids() -> std::io::Result<Vec<PageId>> {
 
 async fn index() -> impl actix_web::Responder {
     HttpResponse::Found()
-        .header(actix_web::http::header::LOCATION, format!("/permalinks"))
+        .header(actix_web::http::header::LOCATION, format!("/pages"))
         .finish()
 }
 
-async fn permalinks() -> std::io::Result<HttpResponse> {
+async fn pages() -> std::io::Result<HttpResponse> {
     let page_ids = list_ids()?;
     let s = format!(
-        "<html><head><title>/permalinks</title><body><h1>/permalinks</h1><ul>{}</ul></body></html>",
+        "<html><head><title>/pages</title><body><h1>/pages</h1><ul>{}</ul></body></html>",
         page_ids
             .iter()
             .map(|page_id| {
                 let id_as_string = page_id.to_string();
                 format!(
-                    "<li><a href=\"/permalinks/{}\">{}</a></li>",
+                    "<li><a href=\"/pages/{}\">{}</a></li>",
                     id_as_string, id_as_string
                 )
             })
@@ -72,7 +72,7 @@ async fn permalinks() -> std::io::Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
-async fn permalink(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
+async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let page_id = PageId::from_str(&params.0).ok_or(std::io::Error::new(
         std::io::ErrorKind::NotFound,
         "invalid page_id format",
@@ -90,8 +90,8 @@ async fn run_server() -> std::io::Result<()> {
     actix_web::HttpServer::new(|| {
         actix_web::App::new()
             .route("/", web::get().to(index))
-            .route("/permalinks", web::get().to(permalinks))
-            .route("/permalinks/{id}", web::get().to(permalink))
+            .route("/pages", web::get().to(pages))
+            .route("/pages/{id}", web::get().to(page))
     })
     .bind("127.0.0.1:3000")?
     .run()
