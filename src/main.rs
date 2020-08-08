@@ -85,8 +85,10 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let md = std::fs::read_to_string(page_file_name)?;
     let parser = pulldown_cmark::Parser::new(&md);
     let mut html = String::new();
+    html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
     pulldown_cmark::html::push_html(&mut html, parser);
-    Ok(HttpResponse::Ok().body(html))
+    html.push_str("</body></html>");
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
 #[actix_rt::main]
