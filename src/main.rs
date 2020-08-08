@@ -146,19 +146,15 @@ async fn titles() -> std::io::Result<HttpResponse> {
     let title_map = read_title_map()?;
     let mut html = String::new();
     html.push_str("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\" /></head><body>");
-    html.push_str("<h1>/titles</h1>");
-    for (title, page_ids) in title_map.iter() {
-        html.push_str(&format!("<h2>{}</h2><ul>", title));
-        for page_id in page_ids.iter() {
-            html.push_str(&format!(
-                "<li><a href=\"{}\">{}</a></li>",
-                to_page_url(&page_id),
-                page_id.to_string()
-            ));
-        }
-        html.push_str("</ul>");
+    html.push_str("<h1>/titles</h1><ul>");
+    for (title, _) in title_map.iter() {
+        html.push_str(&format!(
+            "<li><a href=\"{}\">{}</a></li>",
+            to_title_url(title),
+            title
+        ));
     }
-    html.push_str("</body></html>");
+    html.push_str("</ul></body></html>");
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
