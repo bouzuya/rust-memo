@@ -28,12 +28,18 @@ async fn permalinks() -> actix_web::Result<HttpResponse> {
     Ok(HttpResponse::Ok().body(s))
 }
 
+async fn permalink(id: web::Path<(String,)>) -> actix_web::Result<HttpResponse> {
+    let content = std::fs::read_to_string(format!("./{}.md", id.0))?;
+    Ok(HttpResponse::Ok().body(content))
+}
+
 #[actix_rt::main]
 async fn run_server() -> std::io::Result<()> {
     actix_web::HttpServer::new(|| {
         actix_web::App::new()
             .route("/", web::get().to(index))
             .route("/permalinks", web::get().to(permalinks))
+            .route("/permalinks/{id}", web::get().to(permalink))
     })
     .bind("127.0.0.1:3000")?
     .run()
