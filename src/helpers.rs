@@ -1,24 +1,8 @@
 use crate::page_id::PageId;
+use crate::url::page_url;
 
 pub fn to_file_name(page_id: &PageId) -> String {
     format!("{}.md", page_id.to_string())
-}
-
-pub fn to_page_url(page_id: &PageId) -> String {
-    format!(
-        "/pages/{}",
-        percent_encoding::utf8_percent_encode(
-            &page_id.to_string(),
-            percent_encoding::NON_ALPHANUMERIC,
-        )
-    )
-}
-
-pub fn to_title_url(title: &str) -> String {
-    format!(
-        "/titles/{}",
-        percent_encoding::utf8_percent_encode(title, percent_encoding::NON_ALPHANUMERIC)
-    )
 }
 
 fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
@@ -130,7 +114,7 @@ pub fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::er
     content.push_str(&format!(
         "\n## Obsoletes\n\n- [{}]({})",
         page_id.to_string(),
-        to_page_url(&page_id)
+        page_url(&page_id)
     ));
     let new_file_name = create_new_file(&content)?;
     Ok((old_file_name, new_file_name))

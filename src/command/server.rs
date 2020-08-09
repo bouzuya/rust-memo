@@ -1,7 +1,6 @@
-use crate::helpers::{
-    list_ids, read_obsoleted_map, read_title_map, to_file_name, to_page_url, to_title_url,
-};
+use crate::helpers::{list_ids, read_obsoleted_map, read_title_map, to_file_name};
 use crate::page_id::PageId;
+use crate::url::{page_url, pages_url, title_url, titles_url};
 use actix_web::{web, HttpResponse};
 use askama::Template;
 
@@ -46,7 +45,7 @@ struct TitleTemplate<'a> {
 
 async fn index() -> impl actix_web::Responder {
     HttpResponse::Found()
-        .header(actix_web::http::header::LOCATION, format!("/pages"))
+        .header(actix_web::http::header::LOCATION, pages_url())
         .finish()
 }
 
@@ -56,7 +55,7 @@ async fn pages() -> std::io::Result<HttpResponse> {
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
-            url: to_page_url(&page_id),
+            url: page_url(&page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
     let template = PagesTemplate {
@@ -79,7 +78,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
-            url: to_page_url(&page_id),
+            url: page_url(&page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
     let page_file_name = to_file_name(&page_id);
@@ -88,7 +87,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let mut markdown_html = String::new();
     pulldown_cmark::html::push_html(&mut markdown_html, parser);
     let template = PageTemplate {
-        title: &to_page_url(&page_id),
+        title: &page_url(&page_id),
         html: markdown_html,
         obsoleted_by: &obsoleted_by,
     };
@@ -102,11 +101,11 @@ async fn titles() -> std::io::Result<HttpResponse> {
         .iter()
         .map(|(title, _)| TitlesItemTemplate {
             title: title.to_owned(),
-            url: to_title_url(&title),
+            url: title_url(&title),
         })
         .collect::<Vec<TitlesItemTemplate>>();
     let template = TitlesTemplate {
-        title: "/titles",
+        title: &titles_url(),
         titles: &titles,
     };
     let html = template.render().unwrap();
@@ -121,11 +120,11 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
             .iter()
             .map(|page_id| PageItemTemplate {
                 id: page_id.to_string(),
-                url: to_page_url(&page_id),
+                url: page_url(&page_id),
             })
             .collect::<Vec<PageItemTemplate>>();
         let template = TitleTemplate {
-            title: &to_title_url(title),
+            title: &title_url(title),
             pages: &pages,
         };
         let html = template.render().unwrap();
