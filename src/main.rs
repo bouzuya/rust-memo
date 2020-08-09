@@ -11,10 +11,10 @@ use std::io::Write;
 #[template(path = "pages.html")]
 struct PagesTemplate<'a> {
     title: &'a str,
-    pages: &'a [PagesItemTemplate],
+    pages: &'a [PageItemTemplate],
 }
 
-struct PagesItemTemplate {
+struct PageItemTemplate {
     id: String,
     url: String,
 }
@@ -24,6 +24,7 @@ struct PagesItemTemplate {
 struct PageTemplate<'a> {
     title: &'a str,
     html: String,
+    obsoleted_by: &'a [PageItemTemplate],
 }
 
 #[derive(Template)]
@@ -42,12 +43,7 @@ struct TitlesItemTemplate {
 #[template(path = "title.html")]
 struct TitleTemplate<'a> {
     title: &'a str,
-    pages: &'a [TitleItemTemplate],
-}
-
-struct TitleItemTemplate {
-    id: String,
-    url: String,
+    pages: &'a [PageItemTemplate],
 }
 
 fn to_file_name(page_id: &PageId) -> String {
@@ -69,6 +65,45 @@ fn to_title_url(title: &str) -> String {
         "/titles/{}",
         percent_encoding::utf8_percent_encode(title, percent_encoding::NON_ALPHANUMERIC)
     )
+}
+
+fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
+    use regex::Regex;
+    let re = Regex::new(r"^- \[(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)\]\(.*\)$").unwrap();
+    let file_name = to_file_name(&page_id);
+    let content = match std::fs::read_to_string(&file_name) {
+        Ok(x) => x,
+        Err(_) => return Vec::new(),
+    };
+    if let Some(index) = content.find("\n## Obsoletes") {
+        let mut obsoletes = Vec::new();
+        for line in content[index..].lines() {
+            if let Some(caps) = re.captures(line) {
+                let s = caps.get(1).unwrap().as_str();
+                if let Some(page_id) = PageId::from_str(s) {
+                    obsoletes.push(page_id);
+                }
+            }
+        }
+        obsoletes
+    } else {
+        return Vec::new();
+    }
+}
+
+fn read_obsoleted_map(
+) -> std::io::Result<std::collections::BTreeMap<PageId, std::collections::BTreeSet<PageId>>> {
+    let mut map = std::collections::BTreeMap::new();
+    let page_ids = list_ids()?;
+    for &new_page_id in page_ids.iter() {
+        let obsoletes = read_obsoletes(&new_page_id);
+        for &old_page_id in obsoletes.iter() {
+            map.entry(old_page_id)
+                .or_insert(std::collections::BTreeSet::new())
+                .insert(new_page_id);
+        }
+    }
+    Ok(map)
 }
 
 fn read_title(page_id: &PageId) -> String {
@@ -156,11 +191,11 @@ async fn pages() -> std::io::Result<HttpResponse> {
     let page_ids = list_ids()?;
     let pages = page_ids
         .iter()
-        .map(|page_id| PagesItemTemplate {
+        .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
             url: to_page_url(&page_id),
         })
-        .collect::<Vec<PagesItemTemplate>>();
+        .collect::<Vec<PageItemTemplate>>();
     let template = PagesTemplate {
         title: "/pages",
         pages: &pages,
@@ -174,6 +209,16 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
         std::io::ErrorKind::NotFound,
         "invalid page_id format",
     ))?;
+    let obsoleted_map = read_obsoleted_map()?;
+    let obsoleted_by = obsoleted_map
+        .get(&page_id)
+        .unwrap_or(&std::collections::BTreeSet::new())
+        .iter()
+        .map(|page_id| PageItemTemplate {
+            id: page_id.to_string(),
+            url: to_page_url(&page_id),
+        })
+        .collect::<Vec<PageItemTemplate>>();
     let page_file_name = to_file_name(&page_id);
     let md = std::fs::read_to_string(page_file_name)?;
     let parser = pulldown_cmark::Parser::new(&md);
@@ -182,6 +227,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let template = PageTemplate {
         title: &to_page_url(&page_id),
         html: markdown_html,
+        obsoleted_by: &obsoleted_by,
     };
     let html = template.render().unwrap();
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
@@ -210,11 +256,11 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     if let Some(page_ids) = title_map.get(title) {
         let pages = page_ids
             .iter()
-            .map(|page_id| TitleItemTemplate {
+            .map(|page_id| PageItemTemplate {
                 id: page_id.to_string(),
                 url: to_page_url(&page_id),
             })
-            .collect::<Vec<TitleItemTemplate>>();
+            .collect::<Vec<PageItemTemplate>>();
         let template = TitleTemplate {
             title: &to_title_url(title),
             pages: &pages,
