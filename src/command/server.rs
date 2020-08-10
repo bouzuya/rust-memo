@@ -135,20 +135,20 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
 }
 
 #[actix_rt::main]
-async fn run_server() -> std::io::Result<()> {
-    actix_web::HttpServer::new(|| {
+pub async fn server() -> std::io::Result<()> {
+    let mut listenfd = listenfd::ListenFd::from_env();
+    let mut server = actix_web::HttpServer::new(|| {
         actix_web::App::new()
             .route("/", web::get().to(index))
             .route("/pages", web::get().to(pages))
             .route("/pages/{id}", web::get().to(page))
             .route("/titles", web::get().to(titles))
             .route("/titles/{title}", web::get().to(title))
-    })
-    .bind("127.0.0.1:3000")?
-    .run()
-    .await
-}
-
-pub fn server() -> Result<(), Box<dyn std::error::Error>> {
-    Ok(run_server()?)
+    });
+    server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+        server.listen(l)?
+    } else {
+        server.bind("127.0.0.1:3000")?
+    };
+    server.run().await
 }
