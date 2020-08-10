@@ -6,6 +6,12 @@
   </head>
   <body>
     <h1>{{ title }}</h1>
+    <nav>
+      <ul>
+        <li><a href="{{ title }}">no obsoleted</a></li>
+        <li><a href="{{ title }}?all=true">all</a></li>
+      </ul>
+    </nav>
     <ul>
       {% for page in pages %}
       <li>

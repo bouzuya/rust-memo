@@ -29,6 +29,7 @@ struct PageTemplate<'a> {
 #[derive(Template)]
 #[template(path = "titles.html")]
 struct TitlesTemplate<'a> {
+    show_all: bool,
     title: &'a str,
     titles: &'a [TitlesItemTemplate],
 }
@@ -140,6 +141,7 @@ async fn titles(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
         .filter(|template| all || !template.obsoleted)
         .collect::<Vec<TitlesItemTemplate>>();
     let template = TitlesTemplate {
+        show_all: all,
         title: &titles_url(),
         titles: &titles,
     };
