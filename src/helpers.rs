@@ -1,6 +1,6 @@
 use crate::page_id::PageId;
 use crate::page_title::PageTitle;
-use crate::url::page_url;
+use crate::url_helpers::page_url;
 
 pub fn to_file_name(page_id: &PageId) -> String {
     format!("{}.md", page_id.to_string())

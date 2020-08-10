@@ -1,7 +1,7 @@
 use crate::helpers::{list_ids, read_obsoleted_map, read_title_map, to_file_name};
 use crate::page_id::PageId;
 use crate::page_title::PageTitle;
-use crate::url::{page_url, pages_url, title_url, titles_url};
+use crate::url_helpers::{page_url, pages_url, title_url, titles_url};
 use actix_web::{web, HttpResponse};
 use askama::Template;
 

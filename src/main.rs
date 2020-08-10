@@ -2,7 +2,7 @@ mod command;
 mod helpers;
 mod page_id;
 mod page_title;
-mod url;
+mod url_helpers;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = clap::App::new("memo")
