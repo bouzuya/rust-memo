@@ -96,10 +96,27 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
-async fn titles() -> std::io::Result<HttpResponse> {
+async fn titles(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
+    use std::str::FromStr;
+    let all = match url::Url::from_str(&req.uri().to_string()) {
+        Err(_) => false,
+        Ok(url) => {
+            let map = url
+                .query_pairs()
+                .into_owned()
+                .collect::<std::collections::HashMap<String, String>>();
+            map.get("all") == Some(&"true".to_owned())
+        }
+    };
+    let obsoleted_map = read_obsoleted_map()?;
     let title_map = read_title_map()?;
     let titles = title_map
         .iter()
+        .filter(|(_, page_ids)| {
+            all || page_ids
+                .iter()
+                .any(|page_id| obsoleted_map.get(page_id).is_none())
+        })
         .map(|(title, _)| TitlesItemTemplate {
             title: title.to_string(),
             url: title_url(&title),

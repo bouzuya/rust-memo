@@ -1304,6 +1304,7 @@ dependencies = [
  "percent-encoding",
  "pulldown-cmark",
  "regex",
+ "url",
 ]
 
 [[package]]
