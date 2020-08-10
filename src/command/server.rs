@@ -1,5 +1,6 @@
 use crate::helpers::{list_ids, read_obsoleted_map, read_title_map, to_file_name};
 use crate::page_id::PageId;
+use crate::page_title::PageTitle;
 use crate::url::{page_url, pages_url, title_url, titles_url};
 use actix_web::{web, HttpResponse};
 use askama::Template;
@@ -100,7 +101,7 @@ async fn titles() -> std::io::Result<HttpResponse> {
     let titles = title_map
         .iter()
         .map(|(title, _)| TitlesItemTemplate {
-            title: title.to_owned(),
+            title: title.to_string(),
             url: title_url(&title),
         })
         .collect::<Vec<TitlesItemTemplate>>();
@@ -114,8 +115,8 @@ async fn titles() -> std::io::Result<HttpResponse> {
 
 async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     let title_map = read_title_map()?;
-    let title = &params.0;
-    if let Some(page_ids) = title_map.get(title) {
+    let title = PageTitle::from_str(&params.0);
+    if let Some(page_ids) = title_map.get(&title) {
         let pages = page_ids
             .iter()
             .map(|page_id| PageItemTemplate {
@@ -124,7 +125,7 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
             })
             .collect::<Vec<PageItemTemplate>>();
         let template = TitleTemplate {
-            title: &title_url(title),
+            title: &title_url(&title),
             pages: &pages,
         };
         let html = template.render().unwrap();

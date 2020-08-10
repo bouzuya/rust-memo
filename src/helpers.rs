@@ -1,4 +1,5 @@
 use crate::page_id::PageId;
+use crate::page_title::PageTitle;
 use crate::url::page_url;
 
 pub fn to_file_name(page_id: &PageId) -> String {
@@ -44,26 +45,26 @@ pub fn read_obsoleted_map(
     Ok(map)
 }
 
-fn read_title(page_id: &PageId) -> String {
+fn read_title(page_id: &PageId) -> PageTitle {
     use std::io::prelude::*;
     let file = match std::fs::File::open(&to_file_name(page_id)) {
         Ok(file) => file,
-        Err(_) => return String::new(),
+        Err(_) => return PageTitle::empty(),
     };
     let mut reader = std::io::BufReader::new(file);
     let mut buffer = String::new();
     match reader.read_line(&mut buffer) {
         Ok(_) => {}
-        Err(_) => return String::new(),
+        Err(_) => return PageTitle::empty(),
     };
     if buffer.starts_with("# ") {
-        return buffer[2..].trim().to_owned();
+        return PageTitle::from_str(buffer[2..].trim());
     } else {
-        return String::new();
+        return PageTitle::empty();
     }
 }
 
-pub fn read_title_map() -> std::io::Result<std::collections::BTreeMap<String, Vec<PageId>>> {
+pub fn read_title_map() -> std::io::Result<std::collections::BTreeMap<PageTitle, Vec<PageId>>> {
     let mut title_map = std::collections::BTreeMap::new();
     let page_ids = list_ids()?;
     for &page_id in page_ids.iter() {

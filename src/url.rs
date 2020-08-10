@@ -1,4 +1,5 @@
 use crate::page_id::PageId;
+use crate::page_title::PageTitle;
 
 pub fn page_url(page_id: &PageId) -> String {
     format!(
@@ -15,11 +16,11 @@ pub fn pages_url() -> String {
     format!("/pages")
 }
 
-pub fn title_url(title: &str) -> String {
+pub fn title_url(title: &PageTitle) -> String {
     format!(
         "{}/{}",
         titles_url(),
-        percent_encoding::utf8_percent_encode(title, percent_encoding::NON_ALPHANUMERIC)
+        percent_encoding::utf8_percent_encode(title.as_str(), percent_encoding::NON_ALPHANUMERIC)
     )
 }
 
