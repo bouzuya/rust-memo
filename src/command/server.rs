@@ -14,6 +14,7 @@ struct PagesTemplate<'a> {
 
 struct PageItemTemplate {
     id: String,
+    obsoleted: bool,
     url: String,
 }
 
@@ -51,11 +52,13 @@ async fn index() -> impl actix_web::Responder {
 }
 
 async fn pages() -> std::io::Result<HttpResponse> {
+    let obsoleted_map = read_obsoleted_map()?;
     let page_ids = list_ids()?;
     let pages = page_ids
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
+            obsoleted: obsoleted_map.get(&page_id).is_some(),
             url: page_url(&page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
@@ -79,6 +82,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
+            obsoleted: obsoleted_map.get(&page_id).is_some(),
             url: page_url(&page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
@@ -131,6 +135,7 @@ async fn titles(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
 }
 
 async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
+    let obsoleted_map = read_obsoleted_map()?;
     let title_map = read_title_map()?;
     let title = PageTitle::from_str(&params.0);
     if let Some(page_ids) = title_map.get(&title) {
@@ -138,6 +143,7 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
             .iter()
             .map(|page_id| PageItemTemplate {
                 id: page_id.to_string(),
+                obsoleted: obsoleted_map.get(page_id).is_some(),
                 url: page_url(&page_id),
             })
             .collect::<Vec<PageItemTemplate>>();

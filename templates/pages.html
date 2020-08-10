@@ -8,7 +8,10 @@
     <h1>{{ title }}</h1>
     <ul>
       {% for page in pages %}
-      <li><a href="{{ page.url }}">{{ page.id }}</a></li>
+      <li>
+        <a href="{{ page.url }}">{{ page.id }}</a>
+        {% if page.obsoleted %}(obsoleted){% endif %}
+      </li>
       {% endfor %}
     </ul>
   </body>
