@@ -98,7 +98,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
 
 async fn titles(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     use std::str::FromStr;
-    let all = match url::Url::from_str(&req.uri().to_string()) {
+    let all = match url::Url::from_str(&format!("http://example.com{}", req.uri().to_string())) {
         Err(_) => false,
         Ok(url) => {
             let map = url
