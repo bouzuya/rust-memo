@@ -45,6 +45,20 @@ struct TitleTemplate<'a> {
     pages: &'a [PageItemTemplate],
 }
 
+fn is_all(req: &actix_web::HttpRequest) -> bool {
+    use std::str::FromStr;
+    match url::Url::from_str(&format!("http://example.com{}", req.uri().to_string())) {
+        Err(_) => false,
+        Ok(url) => {
+            let map = url
+                .query_pairs()
+                .into_owned()
+                .collect::<std::collections::HashMap<String, String>>();
+            map.get("all") == Some(&"true".to_owned())
+        }
+    }
+}
+
 async fn index() -> impl actix_web::Responder {
     HttpResponse::Found()
         .header(actix_web::http::header::LOCATION, pages_url())
@@ -101,17 +115,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
 }
 
 async fn titles(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
-    use std::str::FromStr;
-    let all = match url::Url::from_str(&format!("http://example.com{}", req.uri().to_string())) {
-        Err(_) => false,
-        Ok(url) => {
-            let map = url
-                .query_pairs()
-                .into_owned()
-                .collect::<std::collections::HashMap<String, String>>();
-            map.get("all") == Some(&"true".to_owned())
-        }
-    };
+    let all = is_all(&req);
     let obsoleted_map = read_obsoleted_map()?;
     let title_map = read_title_map()?;
     let titles = title_map
@@ -134,7 +138,9 @@ async fn titles(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
-async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
+async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
+    let all = is_all(&req);
+    let params: (String,) = req.match_info().load().unwrap();
     let obsoleted_map = read_obsoleted_map()?;
     let title_map = read_title_map()?;
     let title = PageTitle::from_str(&params.0);
@@ -146,6 +152,7 @@ async fn title(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
                 obsoleted: obsoleted_map.get(page_id).is_some(),
                 url: page_url(&page_id),
             })
+            .filter(|template| all || !template.obsoleted)
             .collect::<Vec<PageItemTemplate>>();
         let template = TitleTemplate {
             title: &title_url(&title),
