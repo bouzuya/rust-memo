@@ -34,6 +34,7 @@ struct TitlesTemplate<'a> {
 }
 
 struct TitlesItemTemplate {
+    obsoleted: bool,
     title: String,
     url: String,
 }
@@ -43,6 +44,13 @@ struct TitlesItemTemplate {
 struct TitleTemplate<'a> {
     title: &'a str,
     pages: &'a [PageItemTemplate],
+}
+
+fn is_obsoleted(
+    obsoleted_map: &std::collections::BTreeMap<PageId, std::collections::BTreeSet<PageId>>,
+    page_id: &PageId,
+) -> bool {
+    obsoleted_map.get(&page_id).is_some()
 }
 
 fn is_all(req: &actix_web::HttpRequest) -> bool {
@@ -73,7 +81,7 @@ async fn pages(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
-            obsoleted: obsoleted_map.get(&page_id).is_some(),
+            obsoleted: is_obsoleted(&obsoleted_map, &page_id),
             url: page_url(&page_id),
         })
         .filter(|template| all || !template.obsoleted)
@@ -98,7 +106,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
-            obsoleted: obsoleted_map.get(&page_id).is_some(),
+            obsoleted: is_obsoleted(&obsoleted_map, &page_id),
             url: page_url(&page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
@@ -122,15 +130,14 @@ async fn titles(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     let title_map = read_title_map()?;
     let titles = title_map
         .iter()
-        .filter(|(_, page_ids)| {
-            all || page_ids
+        .map(|(title, page_ids)| TitlesItemTemplate {
+            obsoleted: !page_ids
                 .iter()
-                .any(|page_id| obsoleted_map.get(page_id).is_none())
-        })
-        .map(|(title, _)| TitlesItemTemplate {
+                .any(|page_id| !is_obsoleted(&obsoleted_map, page_id)),
             title: title.to_string(),
             url: title_url(&title),
         })
+        .filter(|template| all || !template.obsoleted)
         .collect::<Vec<TitlesItemTemplate>>();
     let template = TitlesTemplate {
         title: &titles_url(),
