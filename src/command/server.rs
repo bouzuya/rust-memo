@@ -65,7 +65,8 @@ async fn index() -> impl actix_web::Responder {
         .finish()
 }
 
-async fn pages() -> std::io::Result<HttpResponse> {
+async fn pages(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
+    let all = is_all(&req);
     let obsoleted_map = read_obsoleted_map()?;
     let page_ids = list_ids()?;
     let pages = page_ids
@@ -75,6 +76,7 @@ async fn pages() -> std::io::Result<HttpResponse> {
             obsoleted: obsoleted_map.get(&page_id).is_some(),
             url: page_url(&page_id),
         })
+        .filter(|template| all || !template.obsoleted)
         .collect::<Vec<PageItemTemplate>>();
     let template = PagesTemplate {
         title: &pages_url(),
