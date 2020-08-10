@@ -59,7 +59,7 @@ async fn pages() -> std::io::Result<HttpResponse> {
         })
         .collect::<Vec<PageItemTemplate>>();
     let template = PagesTemplate {
-        title: "/pages",
+        title: &pages_url(),
         pages: &pages,
     };
     let html = template.render().unwrap();
