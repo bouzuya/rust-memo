@@ -5,14 +5,20 @@
     <title>{{ title }}</title>
   </head>
   <body>
-    <h1>{{ title }}</h1>
-    {% if obsoleted_by.len() > 0 %}
-    <h2>Obsoleted by</h2>
-    <ul>
-      {% for page in obsoleted_by %}
-      <li><a href="{{ page.url }}">{{ page.id }}</a></li>
-      {% endfor %}
-    </ul>
-    {% endif %} {{ html|safe }}
+    <header>
+      <h1><a href="{{ page_url }}">{{ page_id }}</a></h1>
+      <p><a href="{{ title_url }}">{{ title }}</a></p>
+      {% if obsoleted_by.len() > 0 %}
+      <nav>
+        Obsoleted by
+        <ul>
+          {% for page in obsoleted_by %}
+          <li><a href="{{ page.url }}">{{ page.id }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+      {% endif %}
+    </header>
+    {{ html|safe }}
   </body>
 </html>

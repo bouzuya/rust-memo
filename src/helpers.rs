@@ -45,7 +45,7 @@ pub fn read_obsoleted_map(
     Ok(map)
 }
 
-fn read_title(page_id: &PageId) -> PageTitle {
+pub fn read_title(page_id: &PageId) -> PageTitle {
     use std::io::prelude::*;
     let file = match std::fs::File::open(&to_file_name(page_id)) {
         Ok(file) => file,

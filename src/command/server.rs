@@ -1,4 +1,4 @@
-use crate::helpers::{list_ids, read_obsoleted_map, read_title_map, to_file_name};
+use crate::helpers::{list_ids, read_obsoleted_map, read_title, read_title_map, to_file_name};
 use crate::page_id::PageId;
 use crate::page_title::PageTitle;
 use crate::url_helpers::{page_url, pages_url, title_url, titles_url};
@@ -21,7 +21,10 @@ struct PageItemTemplate {
 #[derive(Template)]
 #[template(path = "page.html")]
 struct PageTemplate<'a> {
+    page_id: &'a str,
+    page_url: &'a str,
     title: &'a str,
+    title_url: &'a str,
     html: String,
     obsoleted_by: &'a [PageItemTemplate],
 }
@@ -44,6 +47,7 @@ struct TitlesItemTemplate {
 #[template(path = "title.html")]
 struct TitleTemplate<'a> {
     title: &'a str,
+    title_url: &'a str,
     pages: &'a [PageItemTemplate],
 }
 
@@ -111,14 +115,18 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
             url: page_url(&page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
+    let title = read_title(&page_id);
     let page_file_name = to_file_name(&page_id);
     let md = std::fs::read_to_string(page_file_name)?;
     let parser = pulldown_cmark::Parser::new(&md);
     let mut markdown_html = String::new();
     pulldown_cmark::html::push_html(&mut markdown_html, parser);
     let template = PageTemplate {
-        title: &page_url(&page_id),
         html: markdown_html,
+        page_id: &page_id.to_string(),
+        page_url: &page_url(&page_id),
+        title: title.as_str(),
+        title_url: &title_url(&title),
         obsoleted_by: &obsoleted_by,
     };
     let html = template.render().unwrap();
@@ -166,7 +174,8 @@ async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
             .filter(|template| all || !template.obsoleted)
             .collect::<Vec<PageItemTemplate>>();
         let template = TitleTemplate {
-            title: &title_url(&title),
+            title: title.as_str(),
+            title_url: &title_url(&title),
             pages: &pages,
         };
         let html = template.render().unwrap();
