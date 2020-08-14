@@ -20,5 +20,17 @@
       {% endif %}
     </header>
     {{ html|safe }}
+    <aside>
+      {% if linked_by.len() > 0 %}
+      <nav>
+        Linked by
+        <ul>
+          {% for page in linked_by %}
+          <li><a href="{{ page.url }}">{{ page.id }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+      {% endif %}
+    </aside>
   </body>
 </html>

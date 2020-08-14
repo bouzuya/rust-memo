@@ -1,4 +1,6 @@
-use crate::helpers::{list_ids, read_obsoleted_map, read_title, read_title_map, to_file_name};
+use crate::helpers::{
+    list_ids, read_linked_map, read_obsoleted_map, read_title, read_title_map, to_file_name,
+};
 use crate::page_id::PageId;
 use crate::page_title::PageTitle;
 use crate::url_helpers::{page_url, pages_url, title_url, titles_url};
@@ -21,6 +23,7 @@ struct PageItemTemplate {
 #[derive(Template)]
 #[template(path = "page.html")]
 struct PageTemplate<'a> {
+    linked_by: &'a [PageItemTemplate],
     page_id: &'a str,
     page_url: &'a str,
     title: &'a str,
@@ -104,7 +107,19 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
         std::io::ErrorKind::NotFound,
         "invalid page_id format",
     ))?;
+    let title = read_title(&page_id);
+    let linked_map = read_linked_map()?;
     let obsoleted_map = read_obsoleted_map()?;
+    let linked_by = linked_map
+        .get(&title)
+        .unwrap_or(&std::collections::BTreeSet::new())
+        .iter()
+        .map(|page_id| PageItemTemplate {
+            id: page_id.to_string(),
+            obsoleted: is_obsoleted(&obsoleted_map, &page_id),
+            url: page_url(&page_id),
+        })
+        .collect::<Vec<PageItemTemplate>>();
     let obsoleted_by = obsoleted_map
         .get(&page_id)
         .unwrap_or(&std::collections::BTreeSet::new())
@@ -115,7 +130,6 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
             url: page_url(&page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
-    let title = read_title(&page_id);
     let page_file_name = to_file_name(&page_id);
     let md = std::fs::read_to_string(page_file_name)?;
     let parser = pulldown_cmark::Parser::new(&md);
@@ -123,6 +137,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
     pulldown_cmark::html::push_html(&mut markdown_html, parser);
     let template = PageTemplate {
         html: markdown_html,
+        linked_by: &linked_by,
         page_id: &page_id.to_string(),
         page_url: &page_url(&page_id),
         title: title.as_str(),
