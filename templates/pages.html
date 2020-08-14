@@ -5,20 +5,25 @@
     <title>{{ title }}</title>
   </head>
   <body>
-    <h1>{{ title }}</h1>
-    <nav>
+    <header class="page-header">
+      <h1>{{ title }}</h1>
+      <nav>
+        <ul>
+          <li><a href="{{ title }}">no obsoleted</a></li>
+          <li><a href="{{ title }}?all=true">all</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="page-body">
       <ul>
-        <li><a href="{{ title }}">no obsoleted</a></li>
-        <li><a href="{{ title }}?all=true">all</a></li>
+        {% for page in pages %}
+        <li>
+          <a href="{{ page.url }}">{{ page.id }}</a>
+          {% if page.obsoleted %}(obsoleted){% endif %}
+        </li>
+        {% endfor %}
       </ul>
-    </nav>
-    <ul>
-      {% for page in pages %}
-      <li>
-        <a href="{{ page.url }}">{{ page.id }}</a>
-        {% if page.obsoleted %}(obsoleted){% endif %}
-      </li>
-      {% endfor %}
-    </ul>
+    </main>
+    <footer class="page-footer"></footer>
   </body>
 </html>

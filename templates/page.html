@@ -5,7 +5,7 @@
     <title>{{ title }}</title>
   </head>
   <body>
-    <header>
+    <header class="page-header">
       <h1><a href="{{ page_url }}">{{ page_id }}</a></h1>
       <p><a href="{{ title_url }}">{{ title }}</a></p>
       {% if obsoleted_by.len() > 0 %}
@@ -19,18 +19,24 @@
       </nav>
       {% endif %}
     </header>
-    {{ html|safe }}
-    <aside>
-      {% if linked_by.len() > 0 %}
-      <nav>
-        Linked by
-        <ul>
-          {% for page in linked_by %}
-          <li><a href="{{ page.url }}">{{ page.id }}</a></li>
-          {% endfor %}
-        </ul>
-      </nav>
-      {% endif %}
-    </aside>
+    <main class="page-body">
+      <article>
+        {{ html|safe }}
+      </article>
+    </main>
+    <footer class="page-footer">
+      <aside>
+        {% if linked_by.len() > 0 %}
+        <nav>
+          Linked by
+          <ul>
+            {% for page in linked_by %}
+            <li><a href="{{ page.url }}">{{ page.id }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+        {% endif %}
+      </aside>
+    </footer>
   </body>
 </html>

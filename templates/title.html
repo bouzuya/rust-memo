@@ -5,7 +5,7 @@
     <title>{{ title }}</title>
   </head>
   <body>
-    <header>
+    <header class="page-header">
       <h1><a href="{{ title_url }}">{{ title }}</a></h1>
       <nav>
         <ul>
@@ -14,13 +14,16 @@
         </ul>
       </nav>
     </header>
-    <ul>
-      {% for page in pages %}
-      <li>
-        <a href="{{ page.url }}">{{ page.id }}</a>
-        {% if page.obsoleted %}(obsoleted){% endif %}
-      </li>
-      {% endfor %}
-    </ul>
+    <main class="page-body">
+      <ul>
+        {% for page in pages %}
+        <li>
+          <a href="{{ page.url }}">{{ page.id }}</a>
+          {% if page.obsoleted %}(obsoleted){% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </main>
+    <footer class="page-footer"></footer>
   </body>
 </html>
