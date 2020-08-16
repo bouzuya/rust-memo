@@ -31,7 +31,10 @@
           Linked by
           <ul>
             {% for page in linked_by %}
-            <li><a href="{{ page.url }}">{{ page.id }}</a></li>
+            <li>
+              <a href="{{ page.url }}">{{ page.id }}</a>
+              {% if page.obsoleted %}(obsoleted){% endif %}
+            </li>
             {% endfor %}
           </ul>
         </nav>
