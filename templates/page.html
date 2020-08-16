@@ -7,6 +7,12 @@
   <body>
     <header class="page-header">
       <h1><a href="{{ page_url }}">{{ page_id }}</a></h1>
+      <nav>
+        <ul>
+          <li><a href="{{ page_url }}">no obsoleted</a></li>
+          <li><a href="{{ page_url }}?all=true">all</a></li>
+        </ul>
+      </nav>
       <p><a href="{{ title_url }}">{{ title }}</a></p>
       {% if obsoleted_by.len() > 0 %}
       <nav>

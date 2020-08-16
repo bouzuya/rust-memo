@@ -102,7 +102,9 @@ async fn pages(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
-async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
+async fn page(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
+    let all = is_all(&req);
+    let params: (String,) = req.match_info().load().unwrap();
     let page_id = PageId::from_str(&params.0).ok_or(std::io::Error::new(
         std::io::ErrorKind::NotFound,
         "invalid page_id format",
@@ -119,6 +121,7 @@ async fn page(params: web::Path<(String,)>) -> std::io::Result<HttpResponse> {
             obsoleted: is_obsoleted(&obsoleted_map, &page_id),
             url: page_url(&page_id),
         })
+        .filter(|template| all || !template.obsoleted)
         .collect::<Vec<PageItemTemplate>>();
     let obsoleted_by = obsoleted_map
         .get(&page_id)
