@@ -3,6 +3,7 @@ mod handler;
 mod helpers;
 mod page_id;
 mod page_title;
+mod template;
 mod url_helpers;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

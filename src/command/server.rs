@@ -5,56 +5,13 @@ use crate::helpers::{
 };
 use crate::page_id::PageId;
 use crate::page_title::PageTitle;
+use crate::template::{
+    PageItemTemplate, PageTemplate, PagesTemplate, TitleTemplate, TitlesItemTemplate,
+    TitlesTemplate,
+};
 use crate::url_helpers::{page_url, pages_url, title_url, titles_url};
 use actix_web::{web, HttpResponse};
 use askama::Template;
-
-#[derive(Template)]
-#[template(path = "pages.html")]
-struct PagesTemplate<'a> {
-    title: &'a str,
-    pages: &'a [PageItemTemplate],
-}
-
-struct PageItemTemplate {
-    id: String,
-    obsoleted: bool,
-    url: String,
-}
-
-#[derive(Template)]
-#[template(path = "page.html")]
-struct PageTemplate<'a> {
-    linked_by: &'a [PageItemTemplate],
-    page_id: &'a str,
-    page_url: &'a str,
-    title: &'a str,
-    title_url: &'a str,
-    html: String,
-    obsoleted_by: &'a [PageItemTemplate],
-}
-
-#[derive(Template)]
-#[template(path = "titles.html")]
-struct TitlesTemplate<'a> {
-    show_all: bool,
-    title: &'a str,
-    titles: &'a [TitlesItemTemplate],
-}
-
-struct TitlesItemTemplate {
-    obsoleted: bool,
-    title: String,
-    url: String,
-}
-
-#[derive(Template)]
-#[template(path = "title.html")]
-struct TitleTemplate<'a> {
-    title: &'a str,
-    title_url: &'a str,
-    pages: &'a [PageItemTemplate],
-}
 
 fn is_all(req: &actix_web::HttpRequest) -> bool {
     use std::str::FromStr;
