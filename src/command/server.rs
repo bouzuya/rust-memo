@@ -1,40 +1,18 @@
 use crate::handler::index::index;
+use crate::handler::pages::pages;
 use crate::handler_helpers;
 use crate::helpers::{
-    is_obsoleted, list_ids, read_linked_map, read_obsoleted_map, read_title, read_title_map,
-    to_file_name,
+    is_obsoleted, read_linked_map, read_obsoleted_map, read_title, read_title_map, to_file_name,
 };
 use crate::page_id::PageId;
 use crate::page_title::PageTitle;
 use crate::template::{
-    PageItemTemplate, PageTemplate, PagesTemplate, TitleTemplate, TitlesItemTemplate,
-    TitlesTemplate,
+    PageItemTemplate, PageTemplate, TitleTemplate, TitlesItemTemplate, TitlesTemplate,
 };
-use crate::url_helpers::{page_url, pages_url, title_url, titles_url};
+use crate::url_helpers::{page_url, title_url, titles_url};
 use actix_web::{web, HttpResponse};
 use askama::Template;
 use handler_helpers::is_all;
-
-async fn pages(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
-    let all = is_all(&req);
-    let obsoleted_map = read_obsoleted_map()?;
-    let page_ids = list_ids()?;
-    let pages = page_ids
-        .iter()
-        .map(|page_id| PageItemTemplate {
-            id: page_id.to_string(),
-            obsoleted: is_obsoleted(&obsoleted_map, &page_id),
-            url: page_url(&page_id),
-        })
-        .filter(|template| all || !template.obsoleted)
-        .collect::<Vec<PageItemTemplate>>();
-    let template = PagesTemplate {
-        title: &pages_url(),
-        pages: &pages,
-    };
-    let html = template.render().unwrap();
-    Ok(HttpResponse::Ok().content_type("text/html").body(html))
-}
 
 async fn page(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     let all = is_all(&req);
