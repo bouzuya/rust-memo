@@ -1,5 +1,6 @@
 mod command;
 mod handler;
+mod handler_helpers;
 mod helpers;
 mod page_id;
 mod page_title;
