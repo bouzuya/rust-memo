@@ -219,5 +219,9 @@ pub async fn server() -> std::io::Result<()> {
     } else {
         server.bind("127.0.0.1:3000")?
     };
+    println!("listening: ");
+    for (addr, scheme) in server.addrs_with_scheme().iter() {
+        println!("- {}://{}", scheme, addr);
+    }
     server.run().await
 }
