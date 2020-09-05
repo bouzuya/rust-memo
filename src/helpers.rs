@@ -148,8 +148,8 @@ pub fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Erro
     Ok(file_name)
 }
 
-pub fn edit_file(id_as_string: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
-    let page_id = PageId::from_str(id_as_string).expect("invalid ID format");
+pub fn edit_file(id_like_string: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
+    let page_id = PageId::from_like_str(id_like_string).expect("invalid ID format");
     let old_file_name = to_file_name(&page_id);
     let mut content = std::fs::read_to_string(&old_file_name)?;
     if let Some(index) = content.find("\n## Obsoletes") {

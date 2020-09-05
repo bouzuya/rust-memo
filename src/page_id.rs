@@ -8,6 +8,15 @@ impl PageId {
     Self::from_timestamp(Utc::now().timestamp())
   }
 
+  // "YYYYMMDDTHHMMSSZ.md"
+  // "http://localhost:3000/pages/YYYYMMDDTHHMMSSZ"
+  pub fn from_like_str(s: &str) -> Option<Self> {
+    use regex::Regex;
+    let re = Regex::new(r"^(?:.*)(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)(?:.*)$").unwrap();
+    re.captures(s)
+      .and_then(|captures| Self::from_str(captures.get(1).unwrap().as_str()))
+  }
+
   pub fn from_str(s: &str) -> Option<Self> {
     NaiveDateTime::parse_from_str(s, "%Y%m%dT%H%M%SZ")
       .ok()
@@ -51,5 +60,16 @@ mod test {
 
     assert_eq!(super::PageId::from_timestamp(32503680000), None);
     assert_eq!(super::PageId::from_str("30000101T000000Z"), None);
+  }
+
+  #[test]
+  fn from_like_str_test() {
+    let s = "20200808T002147Z";
+    let from_s = super::PageId::from_str(s).unwrap();
+    let like1 = super::PageId::from_like_str("20200808T002147Z.md").unwrap();
+    let like2 =
+      super::PageId::from_like_str("http://localhost:3000/pages/20200808T002147Z").unwrap();
+    assert_eq!(from_s, like1);
+    assert_eq!(from_s, like2);
   }
 }
