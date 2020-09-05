@@ -1,5 +1,6 @@
 use crate::helpers::{
-    list_ids, read_linked_map, read_obsoleted_map, read_title, read_title_map, to_file_name,
+    is_obsoleted, list_ids, read_linked_map, read_obsoleted_map, read_title, read_title_map,
+    to_file_name,
 };
 use crate::page_id::PageId;
 use crate::page_title::PageTitle;
@@ -52,13 +53,6 @@ struct TitleTemplate<'a> {
     title: &'a str,
     title_url: &'a str,
     pages: &'a [PageItemTemplate],
-}
-
-fn is_obsoleted(
-    obsoleted_map: &std::collections::BTreeMap<PageId, std::collections::BTreeSet<PageId>>,
-    page_id: &PageId,
-) -> bool {
-    obsoleted_map.get(&page_id).is_some()
 }
 
 fn is_all(req: &actix_web::HttpRequest) -> bool {

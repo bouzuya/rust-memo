@@ -164,6 +164,13 @@ pub fn edit_file(id_like_string: &str) -> Result<(String, String), Box<dyn std::
     Ok((old_file_name, new_file_name))
 }
 
+pub fn is_obsoleted(
+    obsoleted_map: &std::collections::BTreeMap<PageId, std::collections::BTreeSet<PageId>>,
+    page_id: &PageId,
+) -> bool {
+    obsoleted_map.get(&page_id).is_some()
+}
+
 #[test]
 fn cmark_test() {
     let md = "
