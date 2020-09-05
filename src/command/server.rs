@@ -1,3 +1,4 @@
+use crate::handler::index::index;
 use crate::helpers::{
     is_obsoleted, list_ids, read_linked_map, read_obsoleted_map, read_title, read_title_map,
     to_file_name,
@@ -67,12 +68,6 @@ fn is_all(req: &actix_web::HttpRequest) -> bool {
             map.get("all") == Some(&"true".to_owned())
         }
     }
-}
-
-async fn index() -> impl actix_web::Responder {
-    HttpResponse::Found()
-        .header(actix_web::http::header::LOCATION, pages_url())
-        .finish()
 }
 
 async fn pages(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
