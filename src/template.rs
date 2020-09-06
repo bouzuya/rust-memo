@@ -1,6 +1,10 @@
 use askama::Template;
 
 #[derive(Template)]
+#[template(path = "index.html")]
+pub struct IndexTemplate {}
+
+#[derive(Template)]
 #[template(path = "pages.html")]
 pub struct PagesTemplate<'a> {
   pub title: &'a str,
