@@ -6,6 +6,7 @@ mod page_id;
 mod page_title;
 mod template;
 mod url_helpers;
+mod use_case;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = clap::App::new("memo")

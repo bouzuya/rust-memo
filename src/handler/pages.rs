@@ -1,23 +1,20 @@
 use crate::handler_helpers::is_all;
-use crate::helpers::{is_obsoleted, list_ids, read_obsoleted_map};
 use crate::template::{PageItemTemplate, PagesTemplate};
 use crate::url_helpers::page_url;
 use crate::url_helpers::pages_url;
 use actix_web::HttpResponse;
 use askama::Template;
 
-pub async fn pages(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
+pub async fn pages(req: actix_web::HttpRequest) -> Result<HttpResponse, actix_web::Error> {
   let all = is_all(&req);
-  let obsoleted_map = read_obsoleted_map()?;
-  let page_ids = list_ids()?;
-  let pages = page_ids
-    .iter()
-    .map(|page_id| PageItemTemplate {
-      id: page_id.to_string(),
-      obsoleted: is_obsoleted(&obsoleted_map, &page_id),
-      url: page_url(&page_id),
+  let pages = crate::use_case::list::list(all).map_err(|_| actix_web::Error::from(()))?;
+  let pages = pages
+    .into_iter()
+    .map(|page| PageItemTemplate {
+      id: page.id.to_string(),
+      obsoleted: page.obsoleted,
+      url: page_url(&page.id),
     })
-    .filter(|template| all || !template.obsoleted)
     .collect::<Vec<PageItemTemplate>>();
   let template = PagesTemplate {
     title: &pages_url(),
