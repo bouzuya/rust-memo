@@ -7,6 +7,13 @@
   <body>
     <header class="page-header">
       <h1><a href="{{ page_url }}">{{ page_id }}</a></h1>
+      <nav class="breadcrumbs">
+        <ul>
+          <li><a href="/">/</a></li>
+          <li><a href="/pages">pages</a></li>
+          <li><a href="{{ page_url }}">{{ page_id }}</a></li>
+        </ul>
+      </nav>
       <nav>
         <ul>
           <li><a href="{{ page_url }}">no obsoleted</a></li>
@@ -26,9 +33,7 @@
       {% endif %}
     </header>
     <main class="page-body">
-      <article>
-        {{ html|safe }}
-      </article>
+      <article>{{ html|safe }}</article>
     </main>
     <footer class="page-footer">
       <aside>
