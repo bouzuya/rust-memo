@@ -28,6 +28,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .help("Prints obsoleted memos"),
                 ),
         )
+        .subcommand(
+            clap::SubCommand::with_name("list-title")
+                .about("Lists memo titles")
+                .arg(
+                    clap::Arg::with_name("obsoleted")
+                        .long("obsoleted")
+                        .help("Prints obsoleted memo titles"),
+                ),
+        )
         .subcommand(clap::SubCommand::with_name("new").about("Creates a new memo"))
         .subcommand(clap::SubCommand::with_name("server").about("Runs server"))
         .get_matches();
@@ -40,6 +49,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("list", Some(sub_matches)) => {
             let obsoleted = sub_matches.is_present("obsoleted");
             crate::command::list::list(obsoleted)?
+        }
+        ("list-title", Some(sub_matches)) => {
+            let obsoleted = sub_matches.is_present("obsoleted");
+            crate::command::list_title::list_title(obsoleted)?
         }
         ("server", _) => crate::command::server::server()?,
         _ => {}
