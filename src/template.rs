@@ -57,3 +57,10 @@ pub struct TitleTemplate<'a> {
   pub title_url: &'a str,
   pub pages: &'a [PageItemTemplate],
 }
+
+#[derive(Template)]
+#[template(path = "title-not-found.html")]
+pub struct TitleNotFoundTemplate<'a> {
+  pub title: &'a str,
+  pub title_url: &'a str,
+}
