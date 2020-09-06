@@ -37,11 +37,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .help("Prints obsoleted memo titles"),
                 ),
         )
-        .subcommand(clap::SubCommand::with_name("new").about("Creates a new memo"))
+        .subcommand(
+            clap::SubCommand::with_name("new")
+                .about("Creates a new memo")
+                .arg(
+                    clap::Arg::with_name("title")
+                        .long("title")
+                        .value_name("TITLE")
+                        .help("Creates a new memo with the specified title"),
+                ),
+        )
         .subcommand(clap::SubCommand::with_name("server").about("Runs server"))
         .get_matches();
     match matches.subcommand() {
-        ("new", _) => crate::command::new::new()?,
+        ("new", Some(sub_matches)) => {
+            let title = sub_matches.value_of("title");
+            crate::command::new::new(title)?
+        }
         ("edit", Some(sub_matches)) => {
             let id_like_string = sub_matches.value_of("IDLike").expect("IDLike required");
             crate::command::edit::edit(id_like_string)?
