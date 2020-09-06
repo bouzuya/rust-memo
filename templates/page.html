@@ -44,7 +44,7 @@
             {% for page in linked_by %}
             <li>
               <a href="{{ page.url }}">{{ page.id }}</a>
-              {% if page.obsoleted %}(obsoleted){% endif %}
+              ({{ page.title }}) {% if page.obsoleted %}(obsoleted){% endif %}
             </li>
             {% endfor %}
           </ul>

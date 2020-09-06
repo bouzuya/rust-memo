@@ -17,10 +17,17 @@ pub struct PageItemTemplate {
   pub url: String,
 }
 
+pub struct PageWithTitle {
+  pub id: String,
+  pub obsoleted: bool,
+  pub url: String,
+  pub title: String,
+}
+
 #[derive(Template)]
 #[template(path = "page.html")]
 pub struct PageTemplate<'a> {
-  pub linked_by: &'a [PageItemTemplate],
+  pub linked_by: &'a [PageWithTitle],
   pub page_id: &'a str,
   pub page_url: &'a str,
   pub title: &'a str,
