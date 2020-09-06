@@ -9,7 +9,8 @@ pub struct PageItem {
 
 pub fn list(all: bool) -> Result<Vec<PageItem>, Box<dyn std::error::Error>> {
   let obsoleted_map = read_obsoleted_map()?;
-  let page_ids = list_ids()?;
+  let mut page_ids = list_ids()?;
+  page_ids.reverse();
   let pages = page_ids
     .into_iter()
     .map(|page_id| PageItem {
