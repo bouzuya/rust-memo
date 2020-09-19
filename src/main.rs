@@ -20,6 +20,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ),
         )
         .subcommand(
+            clap::SubCommand::with_name("link")
+                .about("Shows a link for memo")
+                .arg(
+                    clap::Arg::with_name("ID_LIKE_OR_TITLE")
+                        .help("the id or title of the memo")
+                        .required(true),
+                ),
+        )
+        .subcommand(
             clap::SubCommand::with_name("list")
                 .about("Lists memos")
                 .arg(
@@ -57,6 +66,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("edit", Some(sub_matches)) => {
             let id_like_string = sub_matches.value_of("IDLike").expect("IDLike required");
             crate::command::edit::edit(id_like_string)?
+        }
+        ("link", Some(sub_matches)) => {
+            let id_like_or_title_string = sub_matches
+                .value_of("ID_LIKE_OR_TITLE")
+                .expect("ID or TITLE required");
+            crate::command::link::link(id_like_or_title_string)?
         }
         ("list", Some(sub_matches)) => {
             let obsoleted = sub_matches.is_present("obsoleted");
