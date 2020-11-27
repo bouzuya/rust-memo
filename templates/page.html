@@ -31,6 +31,10 @@
         </ul>
       </nav>
       {% endif %}
+      <ul>
+        <li><pre><code>rust-memo link '{{ title }}'</code></pre></li>
+        <li><pre><code>rust-memo edit '{{ page_id }}.md'</code></pre></li>
+      </ul>
     </header>
     <main class="page-body">
       <article>{{ html|safe }}</article>

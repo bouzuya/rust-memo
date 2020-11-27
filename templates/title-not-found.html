@@ -14,13 +14,13 @@
           <li><a href="{{ title_url }}">{{ title }}</a></li>
         </ul>
       </nav>
+      <ul>
+        <li><pre><code>rust-memo link '{{ title }}'</code></pre></li>
+        <li><pre><code>rust-memo new --title '{{ title }}'</code></pre></li>
+      </ul>
     </header>
     <main class="page-body">
       <p>The title was not found</p>
-      <p>
-        You can create a memo with that title using the following command:
-        <pre><code>rust-memo new --title '{{title}}'</code></pre>
-      </p>
     </main>
     <footer class="page-footer"></footer>
   </body>
