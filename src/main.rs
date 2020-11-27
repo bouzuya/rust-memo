@@ -56,6 +56,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ),
         )
         .subcommand(clap::SubCommand::with_name("server").about("Runs server"))
+        .subcommand(
+            clap::SubCommand::with_name("title")
+                .about("Print the title of the memo")
+                .arg(
+                    clap::Arg::with_name("ID_LIKE")
+                        .help("the id of the memo")
+                        .required(true),
+                ),
+        )
         .get_matches();
     match matches.subcommand() {
         ("new", Some(sub_matches)) => {
@@ -81,6 +90,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             crate::command::list_title::list_title(obsoleted)?
         }
         ("server", _) => crate::command::server::server()?,
+        ("title", Some(sub_matches)) => {
+            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID_LIKE required");
+            crate::command::title(id_like_string)?
+        }
         _ => {}
     }
     Ok(())
