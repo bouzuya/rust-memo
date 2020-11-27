@@ -1,6 +1,6 @@
+use crate::entity::PageId;
 use crate::handler_helpers::is_all;
 use crate::helpers::{read_obsoleted_map, read_title_map};
-use crate::page_id::PageId;
 use crate::page_title::PageTitle;
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
 use crate::url_helpers::{page_url, title_url};
