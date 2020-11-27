@@ -1,5 +1,4 @@
-use crate::entity::PageId;
-use crate::page_title::PageTitle;
+use crate::entity::{PageId, PageTitle};
 use crate::url_helpers::{page_url, title_url};
 
 pub fn link(id_like_or_title: &str) -> Result<(), Box<dyn std::error::Error>> {

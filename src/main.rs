@@ -3,7 +3,6 @@ mod entity;
 mod handler;
 mod handler_helpers;
 mod helpers;
-mod page_title;
 mod template;
 mod url_helpers;
 mod use_case;

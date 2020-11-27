@@ -1,7 +1,6 @@
-use crate::entity::PageId;
+use crate::entity::{PageId, PageTitle};
 use crate::handler_helpers::is_all;
 use crate::helpers::{read_obsoleted_map, read_title_map};
-use crate::page_title::PageTitle;
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
 use crate::url_helpers::{page_url, title_url};
 use actix_web::HttpResponse;
