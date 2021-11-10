@@ -3,7 +3,7 @@ use crate::url_helpers::title_url;
 use anyhow::Context;
 use entity::{PageId, PageTitle};
 use pulldown_cmark::{BrokenLink, Options, Parser};
-use std::{collections::BTreeSet, fs};
+use std::{collections::BTreeSet, fs, str::FromStr};
 
 fn broken_links(content: &str) -> BTreeSet<String> {
     let mut res = BTreeSet::new();
@@ -26,7 +26,7 @@ pub fn insert_links(id_like: &str) -> anyhow::Result<()> {
         content.push('\n');
     }
     for link in links {
-        let page_title = PageTitle::from_str(link.as_str());
+        let page_title = PageTitle::from_str(link.as_str())?;
         let url = title_url(&page_title);
         content.push_str(&format!("[{}]: {}", link, url));
     }

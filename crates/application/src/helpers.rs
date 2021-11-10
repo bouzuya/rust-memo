@@ -1,5 +1,7 @@
+use std::str::FromStr;
+
 use crate::url_helpers::page_url;
-use entity::{PageId, PageTitle};
+use entity::{PageId, PageTitle, ParsePageTitleError};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
@@ -25,10 +27,12 @@ pub fn read_links(page_id: &PageId) -> std::io::Result<Vec<PageTitle>> {
     let file_name = to_file_name(page_id);
     let content = std::fs::read_to_string(&file_name)?;
     let links = read_links_impl(&content);
+    // TODO: unwrap
     Ok(links
         .iter()
         .map(|s| PageTitle::from_str(s))
-        .collect::<Vec<PageTitle>>())
+        .collect::<Result<Vec<PageTitle>, ParsePageTitleError>>()
+        .unwrap())
 }
 
 fn read_links_impl(md: &str) -> Vec<String> {
@@ -101,7 +105,8 @@ pub fn read_title(page_id: &PageId) -> PageTitle {
         Err(_) => return PageTitle::default(),
     };
     if buffer.starts_with("# ") {
-        PageTitle::from_str(buffer[2..].trim())
+        // TODO: unwrap
+        PageTitle::from_str(buffer[2..].trim()).unwrap()
     } else {
         PageTitle::default()
     }

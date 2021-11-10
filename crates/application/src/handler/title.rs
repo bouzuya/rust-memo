@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::handler_helpers::is_all;
 use crate::helpers::{read_obsoleted_map, read_title_map};
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
@@ -11,7 +13,8 @@ pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse>
     let params: (String,) = req.match_info().load().unwrap();
     let obsoleted_map = read_obsoleted_map()?;
     let title_map = read_title_map()?;
-    let title = PageTitle::from_str(&params.0);
+    // TODO: unwrap
+    let title = PageTitle::from_str(&params.0).unwrap();
     if let Some(page_ids) = title_map.get(&title) {
         let page_ids = page_ids
             .iter()
