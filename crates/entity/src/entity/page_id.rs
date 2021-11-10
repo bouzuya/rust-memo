@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use regex::Regex;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -17,8 +18,8 @@ impl PageId {
     // "YYYYMMDDTHHMMSSZ.md"
     // "http://localhost:3000/pages/YYYYMMDDTHHMMSSZ"
     pub fn from_like_str(s: &str) -> Result<Self, ParsePageIdError> {
-        use regex::Regex;
-        let re = Regex::new(r"^(?:.*)(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)(?:.*)$").unwrap();
+        let re = Regex::new(r"^(?:.*)(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)(?:.*)$")
+            .map_err(|_| ParsePageIdError)?;
         let captures = re.captures(s).ok_or(ParsePageIdError)?;
         let capture = captures.get(1).ok_or(ParsePageIdError)?;
         Self::from_str(capture.as_str())
@@ -55,13 +56,14 @@ impl std::str::FromStr for PageId {
 mod tests {
     use std::str::FromStr;
 
+    use anyhow::Context;
+
     use super::*;
 
     #[test]
     fn new_test() -> anyhow::Result<()> {
-        // TODO: unwrap
         assert_ne!(
-            PageId::new().unwrap(),
+            PageId::new().context("not supported timestamp")?,
             PageId::from_str("20200808T101010Z")?
         );
         Ok(())
@@ -71,8 +73,7 @@ mod tests {
     fn from_test() -> anyhow::Result<()> {
         let s = "20200808T002147Z";
         let d = 1596846107;
-        // TODO: unwrap
-        let from_d = PageId::from_timestamp(d).unwrap();
+        let from_d = PageId::from_timestamp(d).context("not supported timestamp")?;
         let from_s = PageId::from_str(s)?;
         assert_eq!(from_d, from_s);
         assert_eq!(from_d.to_string(), s);
