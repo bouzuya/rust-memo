@@ -32,43 +32,44 @@ impl PageId {
             None
         }
     }
+}
 
-    pub fn to_string(&self) -> String {
+impl std::fmt::Display for PageId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(self.0, 0), Utc);
-        format!("{}", dt.format("%Y%m%dT%H%M%SZ"))
+        write!(f, "{}", dt.format("%Y%m%dT%H%M%SZ"))
     }
 }
 
-mod test {
+#[cfg(test)]
+mod tests {
+    use super::*;
+
     #[test]
     fn new_test() {
-        assert_ne!(
-            super::PageId::new(),
-            super::PageId::from_str("20200808T101010Z")
-        );
+        assert_ne!(PageId::new(), PageId::from_str("20200808T101010Z"));
     }
 
     #[test]
     fn from_test() {
         let s = "20200808T002147Z";
         let d = 1596846107;
-        let from_d = super::PageId::from_timestamp(d).unwrap();
-        let from_s = super::PageId::from_str(s).unwrap();
+        let from_d = PageId::from_timestamp(d).unwrap();
+        let from_s = PageId::from_str(s).unwrap();
         assert_eq!(from_d, from_s);
         assert_eq!(from_d.to_string(), s);
         assert_eq!(from_s.to_string(), s);
 
-        assert_eq!(super::PageId::from_timestamp(32503680000), None);
-        assert_eq!(super::PageId::from_str("30000101T000000Z"), None);
+        assert_eq!(PageId::from_timestamp(32503680000), None);
+        assert_eq!(PageId::from_str("30000101T000000Z"), None);
     }
 
     #[test]
     fn from_like_str_test() {
         let s = "20200808T002147Z";
-        let from_s = super::PageId::from_str(s).unwrap();
-        let like1 = super::PageId::from_like_str("20200808T002147Z.md").unwrap();
-        let like2 =
-            super::PageId::from_like_str("http://localhost:3000/pages/20200808T002147Z").unwrap();
+        let from_s = PageId::from_str(s).unwrap();
+        let like1 = PageId::from_like_str("20200808T002147Z.md").unwrap();
+        let like2 = PageId::from_like_str("http://localhost:3000/pages/20200808T002147Z").unwrap();
         assert_eq!(from_s, like1);
         assert_eq!(from_s, like2);
     }
