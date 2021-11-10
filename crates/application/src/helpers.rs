@@ -66,7 +66,7 @@ fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
         for line in content[index..].lines() {
             if let Some(caps) = re.captures(line) {
                 let s = caps.get(1).unwrap().as_str();
-                if let Some(page_id) = PageId::from_str(s) {
+                if let Ok(page_id) = PageId::from_str(s) {
                     obsoletes.push(page_id);
                 }
             }
@@ -135,7 +135,7 @@ pub fn list_ids() -> std::io::Result<Vec<PageId>> {
             Some(x) => x,
             None => continue,
         };
-        if let Some(page_id) = PageId::from_str(id_as_string) {
+        if let Ok(page_id) = PageId::from_str(id_as_string) {
             ids.push(page_id);
         }
     }

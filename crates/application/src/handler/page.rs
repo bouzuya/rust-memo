@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::handler_helpers::is_all;
 use crate::helpers::{is_obsoleted, read_linked_map, read_obsoleted_map, read_title, to_file_name};
 use crate::template::{PageItemTemplate, PageTemplate, PageWithTitle};
@@ -9,10 +11,8 @@ use entity::PageId;
 pub async fn page(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     let all = is_all(&req);
     let params: (String,) = req.match_info().load().unwrap();
-    let page_id = PageId::from_str(&params.0).ok_or(std::io::Error::new(
-        std::io::ErrorKind::NotFound,
-        "invalid page_id format",
-    ))?;
+    let page_id = PageId::from_str(&params.0)
+        .map_err(|_| std::io::Error::new(std::io::ErrorKind::NotFound, "invalid page_id format"))?;
     let title = read_title(&page_id);
     let linked_map = read_linked_map()?;
     let obsoleted_map = read_obsoleted_map()?;

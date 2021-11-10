@@ -1,4 +1,10 @@
 use chrono::prelude::*;
+use std::str::FromStr;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+#[error("parse page id error")]
+pub struct ParsePageIdError;
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PageId(i64);
@@ -10,19 +16,12 @@ impl PageId {
 
     // "YYYYMMDDTHHMMSSZ.md"
     // "http://localhost:3000/pages/YYYYMMDDTHHMMSSZ"
-    pub fn from_like_str(s: &str) -> Option<Self> {
+    pub fn from_like_str(s: &str) -> Result<Self, ParsePageIdError> {
         use regex::Regex;
         let re = Regex::new(r"^(?:.*)(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)(?:.*)$").unwrap();
-        re.captures(s)
-            .and_then(|captures| Self::from_str(captures.get(1).unwrap().as_str()))
-    }
-
-    pub fn from_str(s: &str) -> Option<Self> {
-        NaiveDateTime::parse_from_str(s, "%Y%m%dT%H%M%SZ")
-            .ok()
-            .map(|naive_date_time| DateTime::<Utc>::from_utc(naive_date_time, Utc).timestamp())
-            .map(|timestamp| Self::from_timestamp(timestamp))
-            .flatten()
+        let captures = re.captures(s).ok_or(ParsePageIdError)?;
+        let capture = captures.get(1).ok_or(ParsePageIdError)?;
+        Self::from_str(capture.as_str())
     }
 
     pub fn from_timestamp(timestamp: i64) -> Option<Self> {
@@ -41,36 +40,57 @@ impl std::fmt::Display for PageId {
     }
 }
 
+impl std::str::FromStr for PageId {
+    type Err = ParsePageIdError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let naive_date_time =
+            NaiveDateTime::parse_from_str(s, "%Y%m%dT%H%M%SZ").map_err(|_| ParsePageIdError)?;
+        let timestamp = DateTime::<Utc>::from_utc(naive_date_time, Utc).timestamp();
+        Self::from_timestamp(timestamp).ok_or(ParsePageIdError)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
 
     #[test]
-    fn new_test() {
-        assert_ne!(PageId::new(), PageId::from_str("20200808T101010Z"));
+    fn new_test() -> anyhow::Result<()> {
+        // TODO: unwrap
+        assert_ne!(
+            PageId::new().unwrap(),
+            PageId::from_str("20200808T101010Z")?
+        );
+        Ok(())
     }
 
     #[test]
-    fn from_test() {
+    fn from_test() -> anyhow::Result<()> {
         let s = "20200808T002147Z";
         let d = 1596846107;
+        // TODO: unwrap
         let from_d = PageId::from_timestamp(d).unwrap();
-        let from_s = PageId::from_str(s).unwrap();
+        let from_s = PageId::from_str(s)?;
         assert_eq!(from_d, from_s);
         assert_eq!(from_d.to_string(), s);
         assert_eq!(from_s.to_string(), s);
 
         assert_eq!(PageId::from_timestamp(32503680000), None);
-        assert_eq!(PageId::from_str("30000101T000000Z"), None);
+        assert!(PageId::from_str("30000101T000000Z").is_err());
+        Ok(())
     }
 
     #[test]
-    fn from_like_str_test() {
+    fn from_like_str_test() -> anyhow::Result<()> {
         let s = "20200808T002147Z";
-        let from_s = PageId::from_str(s).unwrap();
-        let like1 = PageId::from_like_str("20200808T002147Z.md").unwrap();
-        let like2 = PageId::from_like_str("http://localhost:3000/pages/20200808T002147Z").unwrap();
+        let from_s = PageId::from_str(s)?;
+        let like1 = PageId::from_like_str("20200808T002147Z.md")?;
+        let like2 = PageId::from_like_str("http://localhost:3000/pages/20200808T002147Z")?;
         assert_eq!(from_s, like1);
         assert_eq!(from_s, like2);
+        Ok(())
     }
 }
