@@ -1,5 +1,5 @@
-use crate::entity::{PageId, PageTitle};
 use crate::url_helpers::{page_url, title_url};
+use entity::{PageId, PageTitle};
 
 pub fn link(id_like_or_title: &str) -> Result<(), Box<dyn std::error::Error>> {
     let url = match PageId::from_like_str(id_like_or_title) {

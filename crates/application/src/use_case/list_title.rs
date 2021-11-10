@@ -1,5 +1,5 @@
-use crate::entity::PageTitle;
 use crate::helpers::{is_obsoleted, read_obsoleted_map, read_title_map};
+use entity::PageTitle;
 
 #[derive(Clone)]
 pub struct TitleItem {

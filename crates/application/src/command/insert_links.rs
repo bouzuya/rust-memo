@@ -1,7 +1,7 @@
-use crate::entity::PageTitle;
 use crate::helpers;
-use crate::{entity::PageId, url_helpers::title_url};
+use crate::url_helpers::title_url;
 use anyhow::Context;
+use entity::{PageId, PageTitle};
 use pulldown_cmark::{BrokenLink, Options, Parser};
 use std::{collections::BTreeSet, fs};
 

@@ -1,10 +1,10 @@
-use crate::entity::{PageId, PageTitle};
 use crate::handler_helpers::is_all;
 use crate::helpers::{read_obsoleted_map, read_title_map};
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
 use crate::url_helpers::{page_url, title_url};
 use actix_web::HttpResponse;
 use askama::Template;
+use entity::{PageId, PageTitle};
 
 pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     let all = is_all(&req);

@@ -1,5 +1,5 @@
-use crate::entity::{PageId, PageTitle};
 use crate::url_helpers::page_url;
+use entity::{PageId, PageTitle};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {

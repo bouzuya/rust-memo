@@ -1,4 +1,4 @@
-use crate::entity::{PageId, PageTitle};
+use entity::{PageId, PageTitle};
 
 pub fn page_url(page_id: &PageId) -> String {
     format!(

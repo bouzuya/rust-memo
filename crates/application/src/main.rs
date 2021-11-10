@@ -1,5 +1,4 @@
 mod command;
-mod entity;
 mod handler;
 mod handler_helpers;
 mod helpers;
