@@ -1,6 +1,7 @@
 use crate::entity::{PageId, PageTitle};
 use crate::url_helpers::page_url;
 
+// TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
     format!("{}.md", page_id.to_string())
 }

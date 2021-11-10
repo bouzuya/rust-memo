@@ -19,6 +19,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ),
         )
         .subcommand(
+            clap::SubCommand::with_name("insert-links")
+                .about("Inserts links into the memo")
+                .arg(
+                    clap::Arg::with_name("ID_LIKE")
+                        .help("the id of the memo")
+                        .required(true),
+                ),
+        )
+        .subcommand(
             clap::SubCommand::with_name("link")
                 .about("Shows a link for memo")
                 .arg(
@@ -74,6 +83,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("edit", Some(sub_matches)) => {
             let id_like_string = sub_matches.value_of("IDLike").expect("IDLike required");
             crate::command::edit::edit(id_like_string)?
+        }
+        ("insert-links", Some(sub_matches)) => {
+            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID required");
+            crate::command::insert_links::insert_links(id_like_string)?
         }
         ("link", Some(sub_matches)) => {
             let id_like_or_title_string = sub_matches

@@ -1,4 +1,5 @@
 pub mod edit;
+pub mod insert_links;
 pub mod link;
 pub mod list;
 pub mod list_title;
