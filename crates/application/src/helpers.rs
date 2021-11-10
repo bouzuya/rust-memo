@@ -92,18 +92,18 @@ pub fn read_title(page_id: &PageId) -> PageTitle {
     use std::io::prelude::*;
     let file = match std::fs::File::open(&to_file_name(page_id)) {
         Ok(file) => file,
-        Err(_) => return PageTitle::empty(),
+        Err(_) => return PageTitle::default(),
     };
     let mut reader = std::io::BufReader::new(file);
     let mut buffer = String::new();
     match reader.read_line(&mut buffer) {
         Ok(_) => {}
-        Err(_) => return PageTitle::empty(),
+        Err(_) => return PageTitle::default(),
     };
     if buffer.starts_with("# ") {
-        return PageTitle::from_str(buffer[2..].trim());
+        PageTitle::from_str(buffer[2..].trim())
     } else {
-        return PageTitle::empty();
+        PageTitle::default()
     }
 }
 

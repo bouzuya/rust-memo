@@ -1,13 +1,9 @@
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PageTitle(String);
 
 impl PageTitle {
     pub fn as_str(&self) -> &str {
         self.0.as_str()
-    }
-
-    pub fn empty() -> Self {
-        Self::from_str("")
     }
 
     pub fn from_str(s: &str) -> Self {
@@ -26,8 +22,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn empty_test() {
-        let page_title1 = PageTitle::empty();
+    fn default_test() {
+        let page_title1 = PageTitle::default();
         let page_title2 = PageTitle::from_str("");
         assert_eq!(page_title1, page_title2);
     }
