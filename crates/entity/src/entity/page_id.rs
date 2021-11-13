@@ -15,6 +15,7 @@ impl PageId {
         Self::from_timestamp(Utc::now().timestamp())
     }
 
+    // "YYYYMMDDTHHMMSSZ"
     // "YYYYMMDDTHHMMSSZ.md"
     // "http://localhost:3000/pages/YYYYMMDDTHHMMSSZ"
     pub fn from_like_str(s: &str) -> Result<Self, ParsePageIdError> {
@@ -88,10 +89,12 @@ mod tests {
     fn from_like_str_test() -> anyhow::Result<()> {
         let s = "20200808T002147Z";
         let from_s = PageId::from_str(s)?;
-        let like1 = PageId::from_like_str("20200808T002147Z.md")?;
-        let like2 = PageId::from_like_str("http://localhost:3000/pages/20200808T002147Z")?;
+        let like1 = PageId::from_like_str("20200808T002147Z")?;
+        let like2 = PageId::from_like_str("20200808T002147Z.md")?;
+        let like3 = PageId::from_like_str("http://localhost:3000/pages/20200808T002147Z")?;
         assert_eq!(from_s, like1);
         assert_eq!(from_s, like2);
+        assert_eq!(from_s, like3);
         Ok(())
     }
 }

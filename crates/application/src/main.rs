@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             clap::SubCommand::with_name("edit")
                 .about("Creates a new memo that obsoletes the specified memo")
                 .arg(
-                    clap::Arg::with_name("IDLike")
+                    clap::Arg::with_name("ID_LIKE")
                         .help("the id of the memo to edit")
                         .required(true),
                 ),
@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             crate::command::new::new(title)?
         }
         ("edit", Some(sub_matches)) => {
-            let id_like_string = sub_matches.value_of("IDLike").expect("IDLike required");
+            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID required");
             crate::command::edit::edit(id_like_string)?
         }
         ("insert-links", Some(sub_matches)) => {
@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         ("server", _) => crate::command::server::server()?,
         ("title", Some(sub_matches)) => {
-            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID_LIKE required");
+            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID required");
             crate::command::title(id_like_string)?
         }
         _ => {}
