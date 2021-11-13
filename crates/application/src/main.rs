@@ -6,107 +6,77 @@ mod template;
 mod url_helpers;
 mod use_case;
 
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+struct Opt {
+    #[structopt(subcommand)]
+    subcommand: Subcommand,
+}
+
+#[derive(Debug, StructOpt)]
+enum Subcommand {
+    #[structopt(
+        name = "edit",
+        about = "Creates a new memo that obsoletes the specified memo"
+    )]
+    Edit {
+        #[structopt(name = "ID_LIKE", help = "the id of the memo to edit")]
+        id_like: String,
+    },
+    #[structopt(name = "insert-links", about = "Inserts links into the memo")]
+    InsertLinks {
+        #[structopt(name = "ID_LIKE", help = "the id of the memo to edit")]
+        id_like: String,
+    },
+    #[structopt(name = "link", about = "Shows a link for memo")]
+    Link {
+        #[structopt(name = "ID_LIKE_OR_TITLE", help = "the id or title of the memo")]
+        id_like_or_title: String,
+    },
+    #[structopt(name = "list", about = "Lists memos")]
+    List {
+        #[structopt(long = "obsoleted", help = "Prints obsoleted memos")]
+        obsoleted: bool,
+    },
+    #[structopt(name = "list-title", about = "Lists memo titles")]
+    ListTitle {
+        #[structopt(long = "obsoleted", help = "Prints obsoleted memo titles")]
+        obsoleted: bool,
+    },
+    #[structopt(name = "new", about = "Creates a new memo")]
+    New {
+        #[structopt(
+            long = "title",
+            name = "TITLE",
+            help = "Creates a new memo with the specified title"
+        )]
+        title: Option<String>,
+    },
+    #[structopt(name = "server", about = "Runs server")]
+    Server,
+    #[structopt(name = "title", about = "Print the title of the memo")]
+    Title {
+        #[structopt(name = "ID_LIKE", help = "the id of the memo")]
+        id_like: String,
+    },
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let matches = clap::App::new("memo")
-        .subcommand(
-            clap::SubCommand::with_name("edit")
-                .about("Creates a new memo that obsoletes the specified memo")
-                .arg(
-                    clap::Arg::with_name("ID_LIKE")
-                        .help("the id of the memo to edit")
-                        .required(true),
-                ),
-        )
-        .subcommand(
-            clap::SubCommand::with_name("insert-links")
-                .about("Inserts links into the memo")
-                .arg(
-                    clap::Arg::with_name("ID_LIKE")
-                        .help("the id of the memo")
-                        .required(true),
-                ),
-        )
-        .subcommand(
-            clap::SubCommand::with_name("link")
-                .about("Shows a link for memo")
-                .arg(
-                    clap::Arg::with_name("ID_LIKE_OR_TITLE")
-                        .help("the id or title of the memo")
-                        .required(true),
-                ),
-        )
-        .subcommand(
-            clap::SubCommand::with_name("list")
-                .about("Lists memos")
-                .arg(
-                    clap::Arg::with_name("obsoleted")
-                        .long("obsoleted")
-                        .help("Prints obsoleted memos"),
-                ),
-        )
-        .subcommand(
-            clap::SubCommand::with_name("list-title")
-                .about("Lists memo titles")
-                .arg(
-                    clap::Arg::with_name("obsoleted")
-                        .long("obsoleted")
-                        .help("Prints obsoleted memo titles"),
-                ),
-        )
-        .subcommand(
-            clap::SubCommand::with_name("new")
-                .about("Creates a new memo")
-                .arg(
-                    clap::Arg::with_name("title")
-                        .long("title")
-                        .value_name("TITLE")
-                        .help("Creates a new memo with the specified title"),
-                ),
-        )
-        .subcommand(clap::SubCommand::with_name("server").about("Runs server"))
-        .subcommand(
-            clap::SubCommand::with_name("title")
-                .about("Print the title of the memo")
-                .arg(
-                    clap::Arg::with_name("ID_LIKE")
-                        .help("the id of the memo")
-                        .required(true),
-                ),
-        )
-        .get_matches();
-    match matches.subcommand() {
-        ("new", Some(sub_matches)) => {
-            let title = sub_matches.value_of("title");
-            crate::command::new::new(title)?
+    let opt = Opt::from_args();
+    match opt.subcommand {
+        Subcommand::Edit { id_like } => crate::command::edit::edit(id_like.as_str())?,
+        Subcommand::InsertLinks { id_like } => {
+            crate::command::insert_links::insert_links(id_like.as_str())?
         }
-        ("edit", Some(sub_matches)) => {
-            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID required");
-            crate::command::edit::edit(id_like_string)?
+        Subcommand::Link { id_like_or_title } => {
+            crate::command::link::link(id_like_or_title.as_str())?
         }
-        ("insert-links", Some(sub_matches)) => {
-            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID required");
-            crate::command::insert_links::insert_links(id_like_string)?
-        }
-        ("link", Some(sub_matches)) => {
-            let id_like_or_title_string = sub_matches
-                .value_of("ID_LIKE_OR_TITLE")
-                .expect("ID or TITLE required");
-            crate::command::link::link(id_like_or_title_string)?
-        }
-        ("list", Some(sub_matches)) => {
-            let obsoleted = sub_matches.is_present("obsoleted");
-            crate::command::list::list(obsoleted)?
-        }
-        ("list-title", Some(sub_matches)) => {
-            let obsoleted = sub_matches.is_present("obsoleted");
-            crate::command::list_title::list_title(obsoleted)?
-        }
-        ("server", _) => crate::command::server::server()?,
-        ("title", Some(sub_matches)) => {
-            let id_like_string = sub_matches.value_of("ID_LIKE").expect("ID required");
-            crate::command::title(id_like_string)?
-        }
-        _ => {}
+        Subcommand::List { obsoleted } => crate::command::list::list(obsoleted)?,
+        Subcommand::ListTitle { obsoleted } => crate::command::list_title::list_title(obsoleted)?,
+        Subcommand::New { title } => crate::command::new::new(title.as_deref())?,
+        Subcommand::Server => crate::command::server::server()?,
+        Subcommand::Title { id_like } => crate::command::title(id_like.as_str())?,
     }
     Ok(())
 }
