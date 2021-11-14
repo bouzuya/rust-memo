@@ -143,18 +143,17 @@ pub fn list_ids() -> std::io::Result<Vec<PageId>> {
     Ok(ids)
 }
 
-pub fn create_new_file(content: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub fn create_new_file(content: &str) -> Result<(String, PageId), Box<dyn std::error::Error>> {
     use std::io::prelude::*;
     let page_id = PageId::new().expect("This application is out of date.");
     let file_name = to_file_name(&page_id);
     let mut file = std::fs::File::create(&file_name)?;
     writeln!(file, "{}", content)?;
     file.flush()?;
-    Ok(file_name)
+    Ok((file_name, page_id))
 }
 
-pub fn edit_file(id_like_string: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
-    let page_id = PageId::from_like_str(id_like_string).expect("invalid ID format");
+pub fn edit_file(page_id: PageId) -> Result<(PageId, PageId), Box<dyn std::error::Error>> {
     let old_file_name = to_file_name(&page_id);
     let mut content = std::fs::read_to_string(&old_file_name)?;
     if let Some(index) = content.find("\n## Obsoletes") {
@@ -165,8 +164,8 @@ pub fn edit_file(id_like_string: &str) -> Result<(String, String), Box<dyn std::
         page_id.to_string(),
         page_url(&page_id)
     ));
-    let new_file_name = create_new_file(&content)?;
-    Ok((old_file_name, new_file_name))
+    let (_, new_page_id) = create_new_file(&content)?;
+    Ok((page_id, new_page_id))
 }
 
 pub fn is_obsoleted(
