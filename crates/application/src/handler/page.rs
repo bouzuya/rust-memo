@@ -22,9 +22,9 @@ pub async fn page(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> 
         .iter()
         .map(|page_id| PageWithTitle {
             id: page_id.to_string(),
-            obsoleted: is_obsoleted(&obsoleted_map, &page_id),
-            title: read_title(&page_id).to_string(),
-            url: page_url(&page_id),
+            obsoleted: is_obsoleted(&obsoleted_map, page_id),
+            title: read_title(page_id).to_string(),
+            url: page_url(page_id),
         })
         .filter(|template| all || !template.obsoleted)
         .collect::<Vec<PageWithTitle>>();
@@ -34,8 +34,8 @@ pub async fn page(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> 
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
-            obsoleted: is_obsoleted(&obsoleted_map, &page_id),
-            url: page_url(&page_id),
+            obsoleted: is_obsoleted(&obsoleted_map, page_id),
+            url: page_url(page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
     let page_file_name = to_file_name(&page_id);

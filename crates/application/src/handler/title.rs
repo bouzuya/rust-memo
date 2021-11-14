@@ -18,8 +18,8 @@ pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse>
     if let Some(page_ids) = title_map.get(&title) {
         let page_ids = page_ids
             .iter()
-            .filter(|page_id| all || !obsoleted_map.get(page_id).is_some())
-            .map(|&x| x)
+            .filter(|page_id| all || obsoleted_map.get(page_id).is_none())
+            .copied()
             .collect::<Vec<PageId>>();
         if page_ids.len() == 1 {
             Ok(HttpResponse::Found()
@@ -31,7 +31,7 @@ pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse>
                 .map(|page_id| PageItemTemplate {
                     id: page_id.to_string(),
                     obsoleted: obsoleted_map.get(page_id).is_some(),
-                    url: page_url(&page_id),
+                    url: page_url(page_id),
                 })
                 .collect::<Vec<PageItemTemplate>>();
             let template = TitleTemplate {

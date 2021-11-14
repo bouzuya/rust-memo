@@ -18,7 +18,7 @@ pub fn read_linked_map(
         let tos = read_links(&from_page_id)?;
         for to_page_title in tos.into_iter() {
             map.entry(to_page_title)
-                .or_insert(std::collections::BTreeSet::new())
+                .or_insert_with(std::collections::BTreeSet::new)
                 .insert(from_page_id);
         }
     }
@@ -58,7 +58,7 @@ fn read_links_impl(md: &str) -> Vec<String> {
 fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
     use regex::Regex;
     let re = Regex::new(r"^- \[(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)\]\(.*\)$").unwrap();
-    let file_name = to_file_name(&page_id);
+    let file_name = to_file_name(page_id);
     let content = match std::fs::read_to_string(&file_name) {
         Ok(x) => x,
         Err(_) => return Vec::new(),
@@ -75,7 +75,7 @@ fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
         }
         obsoletes
     } else {
-        return Vec::new();
+        Vec::new()
     }
 }
 
@@ -87,7 +87,7 @@ pub fn read_obsoleted_map(
         let obsoletes = read_obsoletes(&new_page_id);
         for &old_page_id in obsoletes.iter() {
             map.entry(old_page_id)
-                .or_insert(std::collections::BTreeSet::new())
+                .or_insert_with(std::collections::BTreeSet::new)
                 .insert(new_page_id);
         }
     }
@@ -106,9 +106,9 @@ pub fn read_title(page_id: &PageId) -> PageTitle {
         Ok(_) => {}
         Err(_) => return PageTitle::default(),
     };
-    if buffer.starts_with("# ") {
+    if let Some(stripped) = buffer.strip_prefix("# ") {
         // TODO: unwrap
-        PageTitle::from_str(buffer[2..].trim()).unwrap()
+        PageTitle::from_str(stripped.trim()).unwrap()
     } else {
         PageTitle::default()
     }
@@ -119,7 +119,10 @@ pub fn read_title_map() -> std::io::Result<std::collections::BTreeMap<PageTitle,
     let page_ids = list_ids()?;
     for &page_id in page_ids.iter() {
         let title = read_title(&page_id);
-        title_map.entry(title).or_insert(vec![]).push(page_id);
+        title_map
+            .entry(title)
+            .or_insert_with(Vec::new)
+            .push(page_id);
     }
     Ok(title_map)
 }
@@ -177,7 +180,7 @@ pub fn is_obsoleted(
     obsoleted_map: &std::collections::BTreeMap<PageId, std::collections::BTreeSet<PageId>>,
     page_id: &PageId,
 ) -> bool {
-    obsoleted_map.get(&page_id).is_some()
+    obsoleted_map.get(page_id).is_some()
 }
 
 #[test]
@@ -196,7 +199,7 @@ fn cmark_test() {
 [collapsed]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%842
 [shortcut]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%843
 ";
-    let links = read_links_impl(&md);
+    let links = read_links_impl(md);
     assert_eq!(
         links,
         vec!["bouzuya", "ぼうずや1", "ぼうずや2", "ぼうずや3"]

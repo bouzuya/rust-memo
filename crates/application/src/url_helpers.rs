@@ -12,7 +12,7 @@ pub fn page_url(page_id: &PageId) -> String {
 }
 
 pub fn pages_url() -> String {
-    format!("/pages")
+    "/pages".to_string()
 }
 
 pub fn title_url(title: &PageTitle) -> String {
@@ -24,5 +24,5 @@ pub fn title_url(title: &PageTitle) -> String {
 }
 
 pub fn titles_url() -> String {
-    format!("/titles")
+    "/titles".to_string()
 }
