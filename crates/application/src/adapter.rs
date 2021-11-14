@@ -25,6 +25,12 @@ impl Repository for FsRepository {
             None
         })
     }
+
+    fn save(&self, page_id: &PageId, content: String) -> anyhow::Result<()> {
+        let file_name = to_file_name(page_id);
+        let file_name = self.data_dir.join(file_name.as_str());
+        Ok(fs::write(file_name, content)?)
+    }
 }
 
 #[cfg(test)]
@@ -36,7 +42,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() -> anyhow::Result<()> {
+    fn find_content_test() -> anyhow::Result<()> {
         let temp_dir = tempdir()?;
         let data_dir = temp_dir.path().to_path_buf();
         let repository = FsRepository::new(data_dir.clone());
@@ -46,6 +52,24 @@ mod tests {
 
         let file_path = data_dir.join("20210203T040506Z.md");
         fs::write(file_path.as_path(), "content")?;
+        assert_eq!(
+            repository.find_content(&page_id)?,
+            Some("content".to_string())
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn save_test() -> anyhow::Result<()> {
+        let temp_dir = tempdir()?;
+        let data_dir = temp_dir.path().to_path_buf();
+        let repository = FsRepository::new(data_dir);
+
+        let page_id = PageId::from_str("20210203T040506Z")?;
+        assert!(repository.find_content(&page_id)?.is_none());
+
+        repository.save(&page_id, "content".to_string())?;
         assert_eq!(
             repository.find_content(&page_id)?,
             Some("content".to_string())
