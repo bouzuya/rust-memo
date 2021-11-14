@@ -1,11 +1,9 @@
 use std::str::FromStr;
 
-use crate::{
-    url_helpers::page_url,
-    use_case::{HasRepository, Repository},
-};
+use crate::url_helpers::page_url;
 use anyhow::{anyhow, Context};
 use entity::{PageId, PageTitle, ParsePageTitleError};
+use use_case::{HasRepository, Repository};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {

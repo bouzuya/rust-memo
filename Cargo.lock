@@ -1426,6 +1426,7 @@ dependencies = [
  "structopt",
  "tempfile",
  "url",
+ "use_case",
 ]
 
 [[package]]
@@ -1820,6 +1821,14 @@ dependencies = [
  "idna",
  "matches",
  "percent-encoding",
+]
+
+[[package]]
+name = "use_case"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "entity",
 ]
 
 [[package]]

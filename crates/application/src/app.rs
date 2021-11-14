@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use crate::{adapter::FsRepository, use_case::HasRepository};
+use use_case::HasRepository;
+
+use crate::adapter::FsRepository;
 
 pub struct App {
     fs_repository: FsRepository,

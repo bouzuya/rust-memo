@@ -7,18 +7,19 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.33.1"
-actix-web = "2.0.0"
 actix-rt = "1.1.1"
-entity = { path = "../entity" }
-pulldown-cmark = "0.8.0"
-percent-encoding = "2.1.0"
-askama = "0.10.3"
-listenfd = "0.3.3"
-url = "2.1.1"
+actix-web = "2.0.0"
 anyhow = "1.0.45"
+askama = "0.10.3"
+clap = "2.33.1"
+entity = { path = "../entity" }
+listenfd = "0.3.3"
+percent-encoding = "2.1.0"
+pulldown-cmark = "0.8.0"
 regex = "1.5.4"
 structopt = "0.3.25"
+url = "2.1.1"
+use_case = { path = "../use_case" }
 
 [dev-dependencies]
 tempfile = "3.2.0"

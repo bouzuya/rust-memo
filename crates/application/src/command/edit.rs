@@ -1,9 +1,7 @@
 use entity::PageId;
+use use_case::HasRepository;
 
-use crate::{
-    helpers::{edit_file, to_file_name},
-    use_case::HasRepository,
-};
+use crate::helpers::{edit_file, to_file_name};
 
 pub fn edit<T: HasRepository>(
     app: T,

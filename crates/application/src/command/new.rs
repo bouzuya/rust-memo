@@ -1,7 +1,6 @@
-use crate::{
-    helpers::{create_new_file, to_file_name},
-    use_case::HasRepository,
-};
+use use_case::HasRepository;
+
+use crate::helpers::{create_new_file, to_file_name};
 
 pub fn new<App: HasRepository>(
     app: App,

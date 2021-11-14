@@ -1,8 +1,9 @@
 use std::{fs, path::PathBuf};
 
 use entity::PageId;
+use use_case::Repository;
 
-use crate::{helpers::to_file_name, use_case::Repository};
+use crate::helpers::to_file_name;
 
 pub struct FsRepository {
     data_dir: PathBuf,
