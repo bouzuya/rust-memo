@@ -1,3 +1,4 @@
+mod adapter;
 mod command;
 mod handler;
 mod handler_helpers;
