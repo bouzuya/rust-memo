@@ -143,14 +143,14 @@ pub fn list_ids() -> std::io::Result<Vec<PageId>> {
     Ok(ids)
 }
 
-pub fn create_new_file(content: &str) -> Result<(String, PageId), Box<dyn std::error::Error>> {
+pub fn create_new_file(content: &str) -> Result<PageId, Box<dyn std::error::Error>> {
     use std::io::prelude::*;
     let page_id = PageId::new().expect("This application is out of date.");
     let file_name = to_file_name(&page_id);
     let mut file = std::fs::File::create(&file_name)?;
     writeln!(file, "{}", content)?;
     file.flush()?;
-    Ok((file_name, page_id))
+    Ok(page_id)
 }
 
 pub fn edit_file(page_id: PageId) -> Result<(PageId, PageId), Box<dyn std::error::Error>> {
@@ -164,7 +164,7 @@ pub fn edit_file(page_id: PageId) -> Result<(PageId, PageId), Box<dyn std::error
         page_id.to_string(),
         page_url(&page_id)
     ));
-    let (_, new_page_id) = create_new_file(&content)?;
+    let new_page_id = create_new_file(&content)?;
     Ok((page_id, new_page_id))
 }
 
