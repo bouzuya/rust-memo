@@ -1,6 +1,10 @@
 use std::str::FromStr;
 
-use crate::url_helpers::page_url;
+use crate::{
+    url_helpers::page_url,
+    use_case::{HasRepository, Repository},
+};
+use anyhow::{anyhow, Context};
 use entity::{PageId, PageTitle, ParsePageTitleError};
 
 // TODO: returns PathBuf
@@ -153,9 +157,14 @@ pub fn create_new_file(content: &str) -> Result<PageId, Box<dyn std::error::Erro
     Ok(page_id)
 }
 
-pub fn edit_file(page_id: PageId) -> Result<(PageId, PageId), Box<dyn std::error::Error>> {
-    let old_file_name = to_file_name(&page_id);
-    let mut content = std::fs::read_to_string(&old_file_name)?;
+pub fn edit_file<App: HasRepository>(
+    app: App,
+    page_id: PageId,
+) -> Result<(PageId, PageId), Box<dyn std::error::Error>> {
+    let mut content = app
+        .repository()
+        .find_content(&page_id)?
+        .with_context(|| anyhow!("file not found: {}", page_id))?;
     if let Some(index) = content.find("\n## Obsoletes") {
         content.truncate(index);
     }

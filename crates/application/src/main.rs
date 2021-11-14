@@ -1,4 +1,5 @@
 mod adapter;
+mod app;
 mod command;
 mod handler;
 mod handler_helpers;
@@ -7,6 +8,9 @@ mod template;
 mod url_helpers;
 mod use_case;
 
+use std::env;
+
+use app::App;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -64,9 +68,11 @@ enum Subcommand {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let data_dir = env::current_dir()?;
+    let app = App::new(data_dir);
     let opt = Opt::from_args();
     match opt.subcommand {
-        Subcommand::Edit { id_like } => crate::command::edit(id_like.as_str())?,
+        Subcommand::Edit { id_like } => crate::command::edit(app, id_like.as_str())?,
         Subcommand::InsertLinks { id_like } => crate::command::insert_links(id_like.as_str())?,
         Subcommand::Link { id_like_or_title } => crate::command::link(id_like_or_title.as_str())?,
         Subcommand::List { obsoleted } => crate::command::list(obsoleted)?,
