@@ -27,11 +27,18 @@ pub fn insert_links<App: HasRepository>(app: App, id_like: &str) -> anyhow::Resu
     if !links.is_empty() {
         content.push('\n');
     }
-    for link in links {
-        let page_title = PageTitle::from_str(link.as_str())?;
-        let url = title_url(&page_title);
-        content.push_str(&format!("[{}]: {}", link, url));
-    }
+    content.push_str(
+        links
+            .into_iter()
+            .map(|link| -> anyhow::Result<String> {
+                let page_title = PageTitle::from_str(link.as_str())?;
+                let url = title_url(&page_title);
+                Ok(format!("[{}]: {}", link, url))
+            })
+            .collect::<anyhow::Result<Vec<String>>>()?
+            .join("\n")
+            .as_str(),
+    );
     app.repository().save(&page_id, content)?;
     Ok(())
 }
