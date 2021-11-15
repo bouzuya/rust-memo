@@ -1,9 +1,9 @@
-use crate::helpers;
 use crate::url_helpers::title_url;
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use entity::{PageId, PageTitle};
 use pulldown_cmark::{BrokenLink, Options, Parser};
-use std::{collections::BTreeSet, fs, str::FromStr};
+use std::{collections::BTreeSet, str::FromStr};
+use use_case::{HasRepository, Repository};
 
 fn broken_links(content: &str) -> BTreeSet<String> {
     let mut res = BTreeSet::new();
@@ -17,10 +17,12 @@ fn broken_links(content: &str) -> BTreeSet<String> {
     res
 }
 
-pub fn insert_links(id_like: &str) -> anyhow::Result<()> {
-    let page_id = PageId::from_like_str(id_like).context("page_id parse failed")?;
-    let file_name = helpers::to_file_name(&page_id);
-    let mut content = fs::read_to_string(&file_name)?;
+pub fn insert_links<App: HasRepository>(app: App, id_like: &str) -> anyhow::Result<()> {
+    let page_id = PageId::from_like_str(id_like)?;
+    let mut content = app
+        .repository()
+        .find_content(&page_id)?
+        .with_context(|| anyhow!("file not found: {}", page_id))?;
     let links = broken_links(&content);
     if !links.is_empty() {
         content.push('\n');
@@ -30,7 +32,7 @@ pub fn insert_links(id_like: &str) -> anyhow::Result<()> {
         let url = title_url(&page_title);
         content.push_str(&format!("[{}]: {}", link, url));
     }
-    fs::write(file_name, content)?;
+    app.repository().save(&page_id, content)?;
     Ok(())
 }
 
