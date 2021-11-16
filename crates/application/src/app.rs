@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use use_case::HasRepository;
+use use_case::HasPageRepository;
 
 use crate::adapter::FsRepository;
 
@@ -15,10 +15,10 @@ impl App {
     }
 }
 
-impl HasRepository for App {
-    type Repository = FsRepository;
+impl HasPageRepository for App {
+    type PageRepository = FsRepository;
 
-    fn repository(&self) -> &Self::Repository {
+    fn page_repository(&self) -> &Self::PageRepository {
         &self.fs_repository
     }
 }

@@ -1,8 +1,8 @@
-use use_case::HasRepository;
+use use_case::HasPageRepository;
 
 use crate::helpers::{create_new_file, to_file_name};
 
-pub fn new<App: HasRepository>(
+pub fn new<App: HasPageRepository>(
     app: App,
     title: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {

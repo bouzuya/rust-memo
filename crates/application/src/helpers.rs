@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::url_helpers::page_url;
 use anyhow::{anyhow, Context};
 use entity::{PageId, PageTitle, ParsePageTitleError};
-use use_case::{HasRepository, Repository};
+use use_case::{HasPageRepository, PageRepository};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
@@ -148,20 +148,23 @@ pub fn list_ids() -> std::io::Result<Vec<PageId>> {
     Ok(ids)
 }
 
-pub fn create_new_file<App: HasRepository>(
+pub fn create_new_file<App: HasPageRepository>(
     app: App,
     content: String,
 ) -> Result<PageId, Box<dyn std::error::Error>> {
     let page_id = PageId::new().context("This application is out of date.")?;
-    Ok(app.repository().save(&page_id, content).map(|_| page_id)?)
+    Ok(app
+        .page_repository()
+        .save(&page_id, content)
+        .map(|_| page_id)?)
 }
 
-pub fn edit_file<App: HasRepository>(
+pub fn edit_file<App: HasPageRepository>(
     app: App,
     page_id: PageId,
 ) -> Result<(PageId, PageId), Box<dyn std::error::Error>> {
     let mut content = app
-        .repository()
+        .page_repository()
         .find_content(&page_id)?
         .with_context(|| anyhow!("file not found: {}", page_id))?;
     if let Some(index) = content.find("\n## Obsoletes") {

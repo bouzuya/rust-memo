@@ -3,7 +3,7 @@ use anyhow::{anyhow, Context};
 use entity::{PageId, PageTitle};
 use pulldown_cmark::{BrokenLink, Options, Parser};
 use std::{collections::BTreeSet, str::FromStr};
-use use_case::{HasRepository, Repository};
+use use_case::{HasPageRepository, PageRepository};
 
 fn broken_links(content: &str) -> BTreeSet<String> {
     let mut res = BTreeSet::new();
@@ -17,10 +17,10 @@ fn broken_links(content: &str) -> BTreeSet<String> {
     res
 }
 
-pub fn insert_links<App: HasRepository>(app: App, id_like: &str) -> anyhow::Result<()> {
+pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::Result<()> {
     let page_id = PageId::from_like_str(id_like)?;
     let mut content = app
-        .repository()
+        .page_repository()
         .find_content(&page_id)?
         .with_context(|| anyhow!("file not found: {}", page_id))?;
     let links = broken_links(&content);
@@ -39,7 +39,7 @@ pub fn insert_links<App: HasRepository>(app: App, id_like: &str) -> anyhow::Resu
             .join("\n")
             .as_str(),
     );
-    app.repository().save(&page_id, content)?;
+    app.page_repository().save(&page_id, content)?;
     Ok(())
 }
 

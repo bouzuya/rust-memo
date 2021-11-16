@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use entity::PageId;
-use use_case::Repository;
+use use_case::PageRepository;
 
 use crate::helpers::to_file_name;
 
@@ -15,7 +15,7 @@ impl FsRepository {
     }
 }
 
-impl Repository for FsRepository {
+impl PageRepository for FsRepository {
     fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<String>> {
         // TODO: to_file_name should return PathBuf
         let file_name = to_file_name(page_id);

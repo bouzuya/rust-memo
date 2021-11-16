@@ -1,3 +1,3 @@
-mod repository;
+mod page_repository;
 
-pub use self::repository::*;
+pub use self::page_repository::*;

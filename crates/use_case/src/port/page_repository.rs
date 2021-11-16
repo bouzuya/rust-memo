@@ -1,12 +1,13 @@
 use entity::PageId;
 
-pub trait Repository {
+pub trait PageRepository {
     fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<String>>;
+
     fn save(&self, page_id: &PageId, content: String) -> anyhow::Result<()>;
 }
 
-pub trait HasRepository {
-    type Repository: Repository;
+pub trait HasPageRepository {
+    type PageRepository: PageRepository;
 
-    fn repository(&self) -> &Self::Repository;
+    fn page_repository(&self) -> &Self::PageRepository;
 }
