@@ -39,7 +39,7 @@ pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::
             .join("\n")
             .as_str(),
     );
-    app.page_repository().save(&page_id, content)?;
+    app.page_repository().save_content(&page_id, content)?;
     Ok(())
 }
 

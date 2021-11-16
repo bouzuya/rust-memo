@@ -3,7 +3,7 @@ use entity::PageId;
 pub trait PageRepository {
     fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<String>>;
 
-    fn save(&self, page_id: &PageId, content: String) -> anyhow::Result<()>;
+    fn save_content(&self, page_id: &PageId, content: String) -> anyhow::Result<()>;
 }
 
 pub trait HasPageRepository {

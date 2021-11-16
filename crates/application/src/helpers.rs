@@ -155,7 +155,7 @@ pub fn create_new_file<App: HasPageRepository>(
     let page_id = PageId::new().context("This application is out of date.")?;
     Ok(app
         .page_repository()
-        .save(&page_id, content)
+        .save_content(&page_id, content)
         .map(|_| page_id)?)
 }
 
