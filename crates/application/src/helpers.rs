@@ -148,17 +148,6 @@ pub fn list_ids() -> std::io::Result<Vec<PageId>> {
     Ok(ids)
 }
 
-pub fn create_new_file<App: HasPageRepository>(
-    app: App,
-    content: String,
-) -> Result<PageId, Box<dyn std::error::Error>> {
-    let page_id = PageId::new().context("This application is out of date.")?;
-    Ok(app
-        .page_repository()
-        .save_content(&page_id, content)
-        .map(|_| page_id)?)
-}
-
 pub fn edit_file<App: HasPageRepository>(
     app: App,
     page_id: PageId,
@@ -175,7 +164,10 @@ pub fn edit_file<App: HasPageRepository>(
         page_id.to_string(),
         page_url(&page_id)
     ));
-    let new_page_id = create_new_file(app, content)?;
+    let new_page_id = app
+        .page_repository()
+        .save_content(&page_id, content)
+        .map(|_| page_id)?;
     Ok((page_id, new_page_id))
 }
 
