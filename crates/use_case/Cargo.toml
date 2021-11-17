@@ -9,6 +9,9 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.45"
 entity = { path = "../entity" }
+percent-encoding = "2.1.0"
 
 [dev-dependencies]
 anyhow = "1.0.45"
+mockall = "0.10.2"
+tempfile = "3.2.0"

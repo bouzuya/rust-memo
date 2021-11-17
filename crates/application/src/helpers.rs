@@ -1,9 +1,6 @@
 use std::str::FromStr;
 
-use crate::url_helpers::page_url;
-use anyhow::{anyhow, Context};
 use entity::{PageId, PageTitle, ParsePageTitleError};
-use use_case::{HasPageRepository, PageRepository};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
@@ -146,29 +143,6 @@ pub fn list_ids() -> std::io::Result<Vec<PageId>> {
     }
     ids.sort();
     Ok(ids)
-}
-
-pub fn edit_file<App: HasPageRepository>(
-    app: App,
-    page_id: PageId,
-) -> Result<(PageId, PageId), Box<dyn std::error::Error>> {
-    let mut content = app
-        .page_repository()
-        .find_content(&page_id)?
-        .with_context(|| anyhow!("file not found: {}", page_id))?;
-    if let Some(index) = content.find("\n## Obsoletes") {
-        content.truncate(index);
-    }
-    content.push_str(&format!(
-        "\n## Obsoletes\n\n- [{}]({})",
-        page_id.to_string(),
-        page_url(&page_id)
-    ));
-    let new_page_id = app
-        .page_repository()
-        .save_content(&page_id, content)
-        .map(|_| page_id)?;
-    Ok((page_id, new_page_id))
 }
 
 pub fn is_obsoleted(
