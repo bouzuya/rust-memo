@@ -67,7 +67,8 @@ enum Subcommand {
     },
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[actix_rt::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let data_dir = env::current_dir()?;
     let app = App::new(data_dir);
     let opt = Opt::from_args();
@@ -78,7 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Subcommand::List { obsoleted } => crate::command::list(obsoleted)?,
         Subcommand::ListTitle { obsoleted } => crate::command::list_title(obsoleted)?,
         Subcommand::New { title } => crate::command::new(app, title.as_deref())?,
-        Subcommand::Server => crate::command::server()?,
+        Subcommand::Server => crate::command::server(app).await?,
         Subcommand::Title { id_like } => crate::command::title(id_like.as_str())?,
     }
     Ok(())

@@ -1,14 +1,27 @@
 use std::str::FromStr;
 
 use crate::handler_helpers::is_all;
-use crate::helpers::{is_obsoleted, read_linked_map, read_obsoleted_map, read_title, to_file_name};
+use crate::helpers::{is_obsoleted, read_linked_map, read_obsoleted_map, read_title};
 use crate::template::{PageItemTemplate, PageTemplate, PageWithTitle};
 use crate::url_helpers::{page_url, title_url};
-use actix_web::HttpResponse;
+use actix_web::{web, HttpResponse, ResponseError};
 use askama::Template;
 use entity::PageId;
+use thiserror::Error;
+use use_case::{HasPageRepository, PageRepository};
 
-pub async fn page(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
+// TODO:
+#[derive(Debug, Error)]
+#[error("error")]
+struct MyError(String);
+
+impl ResponseError for MyError {}
+
+pub async fn page<T: HasPageRepository>(
+    req: actix_web::HttpRequest,
+    data: web::Data<T>,
+) -> actix_web::error::Result<HttpResponse> {
+    let app = data.get_ref();
     let all = is_all(&req);
     let params: (String,) = req.match_info().load().unwrap();
     let page_id = PageId::from_str(&params.0)
@@ -38,8 +51,11 @@ pub async fn page(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> 
             url: page_url(page_id),
         })
         .collect::<Vec<PageItemTemplate>>();
-    let page_file_name = to_file_name(&page_id);
-    let md = std::fs::read_to_string(page_file_name)?;
+    let md = app
+        .page_repository()
+        .find_content(&page_id)
+        .map_err(|_| MyError(format!("IO error: {}", page_id)))?
+        .ok_or_else(|| MyError(format!("file not found: {}", page_id)))?;
     let parser = pulldown_cmark::Parser::new(&md);
     let mut markdown_html = String::new();
     pulldown_cmark::html::push_html(&mut markdown_html, parser);

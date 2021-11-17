@@ -18,6 +18,7 @@ percent-encoding = "2.1.0"
 pulldown-cmark = "0.8.0"
 regex = "1.5.4"
 structopt = "0.3.25"
+thiserror = "1.0.30"
 url = "2.1.1"
 use_case = { path = "../use_case" }
 

@@ -4,15 +4,17 @@ use crate::handler::pages::pages;
 use crate::handler::title::title;
 use crate::handler::titles::titles;
 use actix_web::web;
+use use_case::HasPageRepository;
 
-#[actix_rt::main]
-pub async fn server() -> std::io::Result<()> {
+pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> std::io::Result<()> {
+    let data = web::Data::new(app);
     let mut listenfd = listenfd::ListenFd::from_env();
-    let mut server = actix_web::HttpServer::new(|| {
+    let mut server = actix_web::HttpServer::new(move || {
         actix_web::App::new()
+            .app_data(data.clone())
             .route("/", web::get().to(index))
             .route("/pages", web::get().to(pages))
-            .route("/pages/{id}", web::get().to(page))
+            .route("/pages/{id}", web::get().to(page::<T>))
             .route("/titles", web::get().to(titles))
             .route("/titles/{title}", web::get().to(title))
     });
