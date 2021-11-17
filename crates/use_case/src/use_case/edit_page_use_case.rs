@@ -20,7 +20,7 @@ fn page_url(page_id: &PageId) -> String {
     )
 }
 
-pub trait EditUseCase: HasPageRepository {
+pub trait EditPageUseCase: HasPageRepository {
     fn edit(&self, page_id: &PageId) -> anyhow::Result<PageId> {
         let mut content = self
             .page_repository()
@@ -40,12 +40,12 @@ pub trait EditUseCase: HasPageRepository {
     }
 }
 
-impl<T: HasPageRepository> EditUseCase for T {}
+impl<T: HasPageRepository> EditPageUseCase for T {}
 
-pub trait HasEditUseCase {
-    type EditUseCase: EditUseCase;
+pub trait HasEditPageUseCase {
+    type EditPageUseCase: EditPageUseCase;
 
-    fn edit_use_case(&self) -> &Self::EditUseCase;
+    fn edit_page_use_case(&self) -> &Self::EditPageUseCase;
 }
 
 #[cfg(test)]
@@ -69,10 +69,10 @@ mod tests {
         }
     }
 
-    impl HasEditUseCase for TestApp {
-        type EditUseCase = TestApp;
+    impl HasEditPageUseCase for TestApp {
+        type EditPageUseCase = TestApp;
 
-        fn edit_use_case(&self) -> &Self::EditUseCase {
+        fn edit_page_use_case(&self) -> &Self::EditPageUseCase {
             self
         }
     }
@@ -90,7 +90,7 @@ mod tests {
             // TODO: test new_page_id & content
             .returning(|_, _| Ok(()));
         let app = TestApp { page_repository };
-        let _new_page_id = app.edit_use_case().edit(&page_id)?;
+        let _new_page_id = app.edit_page_use_case().edit(&page_id)?;
         // TODO: test _new_page_id
         Ok(())
     }

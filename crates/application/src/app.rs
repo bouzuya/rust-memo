@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use use_case::{HasEditUseCase, HasNewPageUseCase, HasPageRepository};
+use use_case::{HasEditPageUseCase, HasNewPageUseCase, HasPageRepository};
 
 use crate::adapter::FsPageRepository;
 
@@ -23,10 +23,10 @@ impl HasPageRepository for App {
     }
 }
 
-impl HasEditUseCase for App {
-    type EditUseCase = App;
+impl HasEditPageUseCase for App {
+    type EditPageUseCase = App;
 
-    fn edit_use_case(&self) -> &Self::EditUseCase {
+    fn edit_page_use_case(&self) -> &Self::EditPageUseCase {
         self
     }
 }
