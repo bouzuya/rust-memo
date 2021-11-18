@@ -21,7 +21,7 @@ fn page_url(page_id: &PageId) -> String {
 }
 
 pub trait EditPageUseCase: HasPageRepository {
-    fn edit(&self, page_id: &PageId) -> anyhow::Result<PageId> {
+    fn edit_page(&self, page_id: &PageId) -> anyhow::Result<PageId> {
         let mut content = self
             .page_repository()
             .find_content(page_id)?
@@ -90,7 +90,7 @@ mod tests {
             // TODO: test new_page_id & content
             .returning(|_, _| Ok(()));
         let app = TestApp { page_repository };
-        let _new_page_id = app.edit_page_use_case().edit(&page_id)?;
+        let _new_page_id = app.edit_page_use_case().edit_page(&page_id)?;
         // TODO: test _new_page_id
         Ok(())
     }
