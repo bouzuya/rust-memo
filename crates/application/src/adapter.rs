@@ -1,6 +1,6 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, str::FromStr};
 
-use entity::PageId;
+use entity::{PageId, PageTitle};
 use use_case::PageRepository;
 
 use crate::helpers::to_file_name;
@@ -25,6 +25,22 @@ impl PageRepository for FsPageRepository {
         } else {
             None
         })
+    }
+
+    fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>> {
+        let content = match self.find_content(page_id)? {
+            Some(x) => x,
+            None => return Ok(None),
+        };
+        let first_line = match content.lines().next() {
+            Some(x) => x,
+            None => return Ok(None),
+        };
+        let title = match first_line.strip_prefix("# ") {
+            Some(x) => x,
+            None => return Ok(None),
+        };
+        Ok(PageTitle::from_str(title).map(Some)?)
     }
 
     fn save_content(&self, page_id: &PageId, content: String) -> anyhow::Result<()> {
@@ -56,6 +72,25 @@ mod tests {
         assert_eq!(
             repository.find_content(&page_id)?,
             Some("content".to_string())
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn find_title_test() -> anyhow::Result<()> {
+        let temp_dir = tempdir()?;
+        let data_dir = temp_dir.path().to_path_buf();
+        let repository = FsPageRepository::new(data_dir.clone());
+
+        let page_id = PageId::from_str("20210203T040506Z")?;
+        assert!(repository.find_content(&page_id)?.is_none());
+
+        let file_path = data_dir.join("20210203T040506Z.md");
+        fs::write(file_path.as_path(), "# title1\n\ncontent")?;
+        assert_eq!(
+            repository.find_title(&page_id)?,
+            Some(PageTitle::from_str("title1")?)
         );
 
         Ok(())
