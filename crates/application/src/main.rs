@@ -80,7 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Subcommand::ListTitle { obsoleted } => crate::command::list_title(obsoleted)?,
         Subcommand::New { title } => crate::command::new(app, title.as_deref())?,
         Subcommand::Server => crate::command::server(app).await?,
-        Subcommand::Title { id_like } => crate::command::title(id_like.as_str())?,
+        Subcommand::Title { id_like } => crate::command::title(app, id_like.as_str())?,
     }
     Ok(())
 }
