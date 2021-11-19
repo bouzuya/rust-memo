@@ -1,7 +1,6 @@
 mod adapter;
 mod app;
 mod command;
-mod handler;
 mod handler_helpers;
 mod helpers;
 mod template;

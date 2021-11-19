@@ -1,8 +1,10 @@
-use crate::handler::index::index;
-use crate::handler::page::page;
-use crate::handler::pages::pages;
-use crate::handler::title::title;
-use crate::handler::titles::titles;
+mod handler;
+
+use self::handler::index;
+use self::handler::page;
+use self::handler::pages;
+use self::handler::title;
+use self::handler::titles;
 use actix_web::web;
 use use_case::HasPageRepository;
 
