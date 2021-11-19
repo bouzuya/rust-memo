@@ -1,15 +1,4 @@
-use entity::{PageId, PageTitle};
-
-pub fn page_url(page_id: &PageId) -> String {
-    format!(
-        "{}/{}",
-        pages_url(),
-        percent_encoding::utf8_percent_encode(
-            &page_id.to_string(),
-            percent_encoding::NON_ALPHANUMERIC,
-        )
-    )
-}
+use entity::PageTitle;
 
 pub fn pages_url() -> String {
     "/pages".to_string()

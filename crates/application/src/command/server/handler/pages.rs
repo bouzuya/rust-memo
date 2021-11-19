@@ -1,9 +1,9 @@
 use crate::handler_helpers::is_all;
 use crate::template::{PageItemTemplate, PagesTemplate};
-use crate::url_helpers::page_url;
 use crate::url_helpers::pages_url;
 use actix_web::{web::Data, HttpResponse};
 use askama::Template;
+use entity::PagePath;
 use use_case::HasPageRepository;
 
 pub async fn pages<T: HasPageRepository>(
@@ -18,7 +18,7 @@ pub async fn pages<T: HasPageRepository>(
         .map(|page| PageItemTemplate {
             id: page.id.to_string(),
             obsoleted: page.obsoleted,
-            url: page_url(&page.id),
+            url: PagePath::from(page.id).to_string(),
         })
         .collect::<Vec<PageItemTemplate>>();
     let template = PagesTemplate {

@@ -3,10 +3,10 @@ use std::str::FromStr;
 use crate::handler_helpers::is_all;
 use crate::helpers::{is_obsoleted, read_linked_map, read_obsoleted_map};
 use crate::template::{PageItemTemplate, PageTemplate, PageWithTitle};
-use crate::url_helpers::{page_url, title_url};
+use crate::url_helpers::title_url;
 use actix_web::{web, HttpResponse, ResponseError};
 use askama::Template;
-use entity::PageId;
+use entity::{PageId, PagePath};
 use thiserror::Error;
 use use_case::{HasPageRepository, PageRepository};
 
@@ -48,7 +48,7 @@ pub async fn page<T: HasPageRepository>(
                 id: page_id.to_string(),
                 obsoleted: is_obsoleted(&obsoleted_map, page_id),
                 title: title.to_string(),
-                url: page_url(page_id),
+                url: PagePath::from(*page_id).to_string(),
             })
         })
         .collect::<actix_web::error::Result<Vec<PageWithTitle>>>()?;
@@ -59,7 +59,7 @@ pub async fn page<T: HasPageRepository>(
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
             obsoleted: is_obsoleted(&obsoleted_map, page_id),
-            url: page_url(page_id),
+            url: PagePath::from(*page_id).to_string(),
         })
         .collect::<Vec<PageItemTemplate>>();
     let md = app
@@ -71,12 +71,12 @@ pub async fn page<T: HasPageRepository>(
     let mut markdown_html = String::new();
     pulldown_cmark::html::push_html(&mut markdown_html, parser);
     let template = PageTemplate {
-        html: markdown_html,
         linked_by: &linked_by,
         page_id: &page_id.to_string(),
-        page_url: &page_url(&page_id),
+        page_url: &PagePath::from(page_id).to_string(),
         title: title.as_str(),
         title_url: &title_url(&title),
+        html: markdown_html,
         obsoleted_by: &obsoleted_by,
     };
     let html = template.render().unwrap();

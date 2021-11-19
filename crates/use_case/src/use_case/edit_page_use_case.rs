@@ -1,24 +1,7 @@
 use anyhow::{anyhow, Context};
-use entity::PageId;
+use entity::{PageId, PagePath};
 
 use crate::{HasPageRepository, PageRepository};
-
-// TODO:
-fn pages_url() -> String {
-    "/pages".to_string()
-}
-
-// TODO:
-fn page_url(page_id: &PageId) -> String {
-    format!(
-        "{}/{}",
-        pages_url(),
-        percent_encoding::utf8_percent_encode(
-            &page_id.to_string(),
-            percent_encoding::NON_ALPHANUMERIC,
-        )
-    )
-}
 
 pub trait EditPageUseCase: HasPageRepository {
     fn edit_page(&self, page_id: &PageId) -> anyhow::Result<PageId> {
@@ -31,8 +14,8 @@ pub trait EditPageUseCase: HasPageRepository {
         }
         content.push_str(&format!(
             "\n## Obsoletes\n\n- [{}]({})",
-            page_id.to_string(),
-            page_url(page_id)
+            page_id,
+            PagePath::from(*page_id),
         ));
         let new_page_id = PageId::new().context("This application is out of date.")?;
         self.page_repository().save_content(&new_page_id, content)?;
