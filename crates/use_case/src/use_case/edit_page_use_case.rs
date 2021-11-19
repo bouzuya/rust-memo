@@ -1,24 +1,20 @@
 use anyhow::{anyhow, Context};
-use entity::{PageId, PagePath};
+use entity::{PageContent, PageId};
 
 use crate::{HasPageRepository, PageRepository};
 
 pub trait EditPageUseCase: HasPageRepository {
     fn edit_page(&self, page_id: &PageId) -> anyhow::Result<PageId> {
-        let mut content = self
+        // TODO: PageRepository::find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>>
+        let content = self
             .page_repository()
             .find_content(page_id)?
             .with_context(|| anyhow!("file not found: {}", page_id))?;
-        if let Some(index) = content.find("\n## Obsoletes") {
-            content.truncate(index);
-        }
-        content.push_str(&format!(
-            "\n## Obsoletes\n\n- [{}]({})",
-            page_id,
-            PagePath::from(*page_id),
-        ));
+        let mut page_content = PageContent::from(content);
+        page_content.replace_obsoletes(*page_id);
         let new_page_id = PageId::new().context("This application is out of date.")?;
-        self.page_repository().save_content(&new_page_id, content)?;
+        self.page_repository()
+            .save_content(&new_page_id, page_content.to_string())?;
         Ok(new_page_id)
     }
 }
