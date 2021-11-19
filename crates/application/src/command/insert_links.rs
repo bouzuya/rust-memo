@@ -1,29 +1,19 @@
 use crate::url_helpers::title_url;
 use anyhow::{anyhow, Context};
-use entity::{PageId, PageTitle};
-use pulldown_cmark::{BrokenLink, Options, Parser};
-use std::{collections::BTreeSet, str::FromStr};
+use entity::{PageContent, PageId, PageTitle};
+use std::str::FromStr;
 use use_case::{HasPageRepository, PageRepository};
-
-fn broken_links(content: &str) -> BTreeSet<String> {
-    let mut res = BTreeSet::new();
-    let mut callback = |broken_link: BrokenLink| {
-        res.insert(broken_link.reference.to_owned());
-        None
-    };
-    let parser =
-        Parser::new_with_broken_link_callback(content, Options::empty(), Some(&mut callback));
-    for _ in parser {}
-    res
-}
 
 pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::Result<()> {
     let page_id = PageId::from_like_str(id_like)?;
-    let mut content = app
+    // TODO: PageRepository::find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>>
+    let content = app
         .page_repository()
         .find_content(&page_id)?
         .with_context(|| anyhow!("file not found: {}", page_id))?;
-    let links = broken_links(&content);
+    let page_content = PageContent::from(content);
+    let links = page_content.broken_links();
+    let mut content = page_content.to_string();
     if !links.is_empty() {
         content.push('\n');
     }
@@ -41,37 +31,4 @@ pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::
     );
     app.page_repository().save_content(&page_id, content)?;
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use std::iter::FromIterator;
-
-    use super::*;
-
-    #[test]
-    fn broken_links_test() {
-        let set = |s: &[&str]| -> BTreeSet<String> {
-            BTreeSet::from_iter(s.iter().map(|i| i.to_string()))
-        };
-
-        assert!(broken_links("").is_empty());
-
-        assert_eq!(broken_links("[foo]"), set(&["foo"]));
-        assert_eq!(broken_links("[foo bar]"), set(&["foo bar"]));
-        assert_eq!(broken_links("[foo \"bar\"]"), set(&["foo \"bar\""]));
-
-        assert!(broken_links("[foo]\n\n[foo]: xxx").is_empty());
-        assert_eq!(broken_links("[foo]\n[foo]: url"), set(&["foo"]));
-        assert_eq!(broken_links("[foo]\n[foo]: url\n"), set(&["foo"]));
-
-        assert_eq!(broken_links("[foo] [bar]"), set(&["foo", "bar"]));
-        assert_eq!(broken_links("[foo]\n[bar]"), set(&["foo", "bar"]));
-        assert_eq!(broken_links("[foo]\n\n[bar]"), set(&["foo", "bar"]));
-        assert_eq!(broken_links("[foo] [foo]"), set(&["foo"]));
-
-        assert!(broken_links("[foo]()").is_empty());
-        assert!(broken_links("[](url)").is_empty());
-        assert!(broken_links("[]").is_empty());
-    }
 }
