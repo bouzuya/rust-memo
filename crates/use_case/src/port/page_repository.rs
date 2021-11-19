@@ -6,6 +6,8 @@ use mockall::automock;
 pub trait PageRepository {
     fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<String>>;
 
+    fn find_ids(&self) -> anyhow::Result<Vec<PageId>>;
+
     fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>>;
 
     fn save_content(&self, page_id: &PageId, content: String) -> anyhow::Result<()>;

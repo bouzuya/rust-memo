@@ -27,6 +27,27 @@ impl PageRepository for FsPageRepository {
         })
     }
 
+    fn find_ids(&self) -> anyhow::Result<Vec<PageId>> {
+        let mut ids = vec![];
+        for res in fs::read_dir(self.data_dir.as_path())? {
+            let dir_entry = res?;
+            let file_type = dir_entry.file_type()?;
+            if !file_type.is_file() {
+                continue;
+            }
+            let path = dir_entry.path();
+            let id_as_string = match path.file_stem().and_then(|os_str| os_str.to_str()) {
+                Some(x) => x,
+                None => continue,
+            };
+            if let Ok(page_id) = PageId::from_str(id_as_string) {
+                ids.push(page_id);
+            }
+        }
+        ids.sort();
+        Ok(ids)
+    }
+
     fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>> {
         let content = match self.find_content(page_id)? {
             Some(x) => x,
@@ -73,6 +94,24 @@ mod tests {
             repository.find_content(&page_id)?,
             Some("content".to_string())
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn find_ids_test() -> anyhow::Result<()> {
+        let temp_dir = tempdir()?;
+        let data_dir = temp_dir.path().to_path_buf();
+        let repository = FsPageRepository::new(data_dir);
+
+        let page_id1 = PageId::from_str("20210203T040506Z")?;
+        repository.save_content(&page_id1, "".to_string())?;
+        let page_id2 = PageId::from_str("20210203T040507Z")?;
+        repository.save_content(&page_id2, "".to_string())?;
+        let page_id3 = PageId::from_str("20210203T040508Z")?;
+        repository.save_content(&page_id3, "".to_string())?;
+
+        assert_eq!(repository.find_ids()?, vec![page_id1, page_id2, page_id3],);
 
         Ok(())
     }
