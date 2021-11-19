@@ -1,5 +1,6 @@
-use crate::helpers::{is_obsoleted, list_ids, read_obsoleted_map};
+use crate::helpers::{is_obsoleted, read_obsoleted_map};
 use entity::PageId;
+use use_case::{HasPageRepository, PageRepository};
 
 #[derive(Clone)]
 pub struct PageItem {
@@ -7,9 +8,12 @@ pub struct PageItem {
     pub obsoleted: bool,
 }
 
-pub fn list(all: bool) -> Result<Vec<PageItem>, Box<dyn std::error::Error>> {
+pub fn list<App: HasPageRepository>(
+    app: &App,
+    all: bool,
+) -> Result<Vec<PageItem>, Box<dyn std::error::Error>> {
     let obsoleted_map = read_obsoleted_map()?;
-    let mut page_ids = list_ids()?;
+    let mut page_ids = app.page_repository().find_ids()?;
     page_ids.reverse();
     let pages = page_ids
         .into_iter()

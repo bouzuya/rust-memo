@@ -124,7 +124,7 @@ pub fn read_title_map() -> std::io::Result<std::collections::BTreeMap<PageTitle,
     Ok(title_map)
 }
 
-pub fn list_ids() -> std::io::Result<Vec<PageId>> {
+fn list_ids() -> std::io::Result<Vec<PageId>> {
     let mut ids = vec![];
     for res in std::fs::read_dir(".")? {
         let dir_entry = res?;

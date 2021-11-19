@@ -2,12 +2,17 @@ use crate::handler_helpers::is_all;
 use crate::template::{PageItemTemplate, PagesTemplate};
 use crate::url_helpers::page_url;
 use crate::url_helpers::pages_url;
-use actix_web::HttpResponse;
+use actix_web::{web::Data, HttpResponse};
 use askama::Template;
+use use_case::HasPageRepository;
 
-pub async fn pages(req: actix_web::HttpRequest) -> Result<HttpResponse, actix_web::Error> {
+pub async fn pages<T: HasPageRepository>(
+    req: actix_web::HttpRequest,
+    data: Data<T>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let app = data.get_ref();
     let all = is_all(&req);
-    let pages = crate::use_case::list::list(all).map_err(|_| actix_web::Error::from(()))?;
+    let pages = crate::use_case::list::list(app, all).map_err(|_| actix_web::Error::from(()))?;
     let pages = pages
         .into_iter()
         .map(|page| PageItemTemplate {

@@ -13,7 +13,7 @@ pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> std
         actix_web::App::new()
             .app_data(data.clone())
             .route("/", web::get().to(index))
-            .route("/pages", web::get().to(pages))
+            .route("/pages", web::get().to(pages::<T>))
             .route("/pages/{id}", web::get().to(page::<T>))
             .route("/titles", web::get().to(titles))
             .route("/titles/{title}", web::get().to(title))
