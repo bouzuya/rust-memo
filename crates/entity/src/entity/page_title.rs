@@ -27,6 +27,18 @@ impl std::str::FromStr for PageTitle {
     }
 }
 
+impl From<String> for PageTitle {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<PageTitle> for String {
+    fn from(page_title: PageTitle) -> Self {
+        page_title.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -39,6 +51,11 @@ mod tests {
         let page_title2 = PageTitle::from_str("")?;
         assert_eq!(page_title1, page_title2);
         Ok(())
+    }
+
+    #[test]
+    fn str_conversion_test() {
+        assert_eq!(String::from(PageTitle::from("title".to_string())), "title");
     }
 
     #[test]
