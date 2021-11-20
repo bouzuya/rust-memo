@@ -1,10 +1,10 @@
-use entity::{PageId, PageTitle};
+use entity::{PageContent, PageId, PageTitle};
 #[cfg(test)]
 use mockall::automock;
 
 #[cfg_attr(test, automock)]
 pub trait PageRepository {
-    fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<String>>;
+    fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>>;
 
     fn find_ids(&self) -> anyhow::Result<Vec<PageId>>;
 

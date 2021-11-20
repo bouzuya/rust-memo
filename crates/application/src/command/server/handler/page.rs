@@ -65,6 +65,7 @@ pub async fn page<T: HasPageRepository>(
         .page_repository()
         .find_content(&page_id)
         .map_err(|_| MyError(format!("IO error: {}", page_id)))?
+        .map(String::from)
         .ok_or_else(|| MyError(format!("file not found: {}", page_id)))?;
     let parser = pulldown_cmark::Parser::new(&md);
     let mut markdown_html = String::new();

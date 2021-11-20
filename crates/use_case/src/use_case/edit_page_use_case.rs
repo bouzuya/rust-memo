@@ -1,18 +1,17 @@
 use anyhow::{anyhow, Context};
-use entity::{PageContent, PageId};
+use entity::PageId;
 
 use crate::{HasPageRepository, PageRepository};
 
 pub trait EditPageUseCase: HasPageRepository {
     fn edit_page(&self, page_id: &PageId) -> anyhow::Result<PageId> {
-        // TODO: PageRepository::find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>>
-        let content = self
+        let mut page_content = self
             .page_repository()
             .find_content(page_id)?
             .with_context(|| anyhow!("file not found: {}", page_id))?;
-        let mut page_content = PageContent::from(content);
         page_content.replace_obsoletes(*page_id);
         let new_page_id = PageId::new().context("This application is out of date.")?;
+        // TODO: PageRepository::save_content(&self, page_id: &PageId, page_content: PageContent) -> anyhow::Result<()>
         self.page_repository()
             .save_content(&new_page_id, page_content.to_string())?;
         Ok(new_page_id)
@@ -31,6 +30,7 @@ pub trait HasEditPageUseCase {
 mod tests {
     use std::str::FromStr;
 
+    use entity::PageContent;
     use mockall::predicate;
 
     use super::*;
@@ -63,7 +63,7 @@ mod tests {
         page_repository
             .expect_find_content()
             .with(predicate::eq(page_id))
-            .returning(|_| Ok(Some("# title\n\ncontent1".to_string())));
+            .returning(|_| Ok(Some(PageContent::from("# title\n\ncontent1".to_string()))));
         page_repository
             .expect_save_content()
             // TODO: test new_page_id & content

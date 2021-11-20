@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf, str::FromStr};
 
-use entity::{PageId, PageTitle};
+use entity::{PageContent, PageId, PageTitle};
 use use_case::PageRepository;
 
 use crate::helpers::to_file_name;
@@ -16,12 +16,14 @@ impl FsPageRepository {
 }
 
 impl PageRepository for FsPageRepository {
-    fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<String>> {
+    fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>> {
         // TODO: to_file_name should return PathBuf
         let file_name = to_file_name(page_id);
         let file_name = self.data_dir.join(file_name.as_str());
         Ok(if file_name.exists() {
-            fs::read_to_string(file_name).map(Some)?
+            fs::read_to_string(file_name)
+                .map(PageContent::from)
+                .map(Some)?
         } else {
             None
         })
@@ -49,8 +51,9 @@ impl PageRepository for FsPageRepository {
     }
 
     fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>> {
+        // TODO: PageContent::title
         let content = match self.find_content(page_id)? {
-            Some(x) => x,
+            Some(x) => String::from(x),
             None => return Ok(None),
         };
         let first_line = match content.lines().next() {
@@ -92,7 +95,7 @@ mod tests {
         fs::write(file_path.as_path(), "content")?;
         assert_eq!(
             repository.find_content(&page_id)?,
-            Some("content".to_string())
+            Some(PageContent::from("content".to_string()))
         );
 
         Ok(())
@@ -147,7 +150,7 @@ mod tests {
         repository.save_content(&page_id, "content".to_string())?;
         assert_eq!(
             repository.find_content(&page_id)?,
-            Some("content".to_string())
+            Some(PageContent::from("content".to_string()))
         );
 
         Ok(())
