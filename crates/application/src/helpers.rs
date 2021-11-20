@@ -123,26 +123,3 @@ pub fn is_obsoleted(
 ) -> bool {
     obsoleted_map.get(page_id).is_some()
 }
-
-#[test]
-fn cmark_test() {
-    let md = "
-[inline](/titles/bouzuya)
-[ref][ref]
-[ref_unknown][ref_unknown]
-[collapsed][]
-[collapsed_unknown][]
-[shortcut]
-[shortcut_unknown]
-</titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%844>
-
-[ref]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%841
-[collapsed]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%842
-[shortcut]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%843
-";
-    let links = read_links_impl(md);
-    assert_eq!(
-        links,
-        vec!["bouzuya", "ぼうずや1", "ぼうずや2", "ぼうずや3"]
-    );
-}

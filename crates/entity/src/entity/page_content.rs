@@ -241,6 +241,19 @@ mod tests {
                 "",
                 "[20210203T040506Z]",
                 "",
+                "[inline](/titles/bouzuya)",
+                "[ref][ref]",
+                "[ref_unknown][ref_unknown]",
+                "[collapsed][]",
+                "[collapsed_unknown][]",
+                "[shortcut]",
+                "[shortcut_unknown]",
+                "</titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%844>",
+                "",
+                "[ref]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%841",
+                "[collapsed]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%842",
+                "[shortcut]: /titles/%E3%81%BC%E3%81%86%E3%81%9A%E3%82%843",
+                "",
                 "[title1]: /titles/title1",
                 "[title2]: /titles/title2",
                 "[title3]: /titles/title3",
@@ -251,11 +264,19 @@ mod tests {
         );
         assert_eq!(
             page_content.title_links(),
-            vec!["title1", "title2", "title3"]
-                .iter()
-                .map(|s| s.to_string())
-                .map(PageTitle::from)
-                .collect::<Vec<PageTitle>>()
+            vec![
+                "title1",
+                "title2",
+                "title3",
+                "bouzuya",
+                "ぼうずや1",
+                "ぼうずや2",
+                "ぼうずや3"
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .map(PageTitle::from)
+            .collect::<Vec<PageTitle>>()
         );
     }
 
