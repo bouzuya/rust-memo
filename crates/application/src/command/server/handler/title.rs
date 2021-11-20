@@ -1,10 +1,9 @@
 use crate::handler_helpers::is_all;
 use crate::helpers::{read_obsoleted_map, read_title_map};
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
-use crate::url_helpers::title_url;
 use actix_web::HttpResponse;
 use askama::Template;
-use entity::{PageId, PagePath, PageTitle};
+use entity::{PageId, PagePath, PageTitle, TitlePath};
 
 pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
     let all = is_all(&req);
@@ -36,7 +35,7 @@ pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse>
                 .collect::<Vec<PageItemTemplate>>();
             let template = TitleTemplate {
                 title: title.as_str(),
-                title_url: &title_url(&title),
+                title_url: &TitlePath::from(title.clone()).to_string(),
                 pages: &pages,
             };
             let html = template.render().unwrap();
@@ -45,7 +44,7 @@ pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse>
     } else {
         let template = TitleNotFoundTemplate {
             title: title.as_str(),
-            title_url: &title_url(&title),
+            title_url: &TitlePath::from(title.clone()).to_string(),
         };
         let html = template.render().unwrap();
         Ok(HttpResponse::NotFound()

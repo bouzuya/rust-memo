@@ -1,8 +1,9 @@
 use crate::handler_helpers::is_all;
 use crate::template::{TitlesItemTemplate, TitlesTemplate};
-use crate::url_helpers::{title_url, titles_url};
+use crate::url_helpers::titles_url;
 use actix_web::HttpResponse;
 use askama::Template;
+use entity::TitlePath;
 
 pub async fn titles(req: actix_web::HttpRequest) -> Result<HttpResponse, actix_web::Error> {
     let all = is_all(&req);
@@ -13,7 +14,7 @@ pub async fn titles(req: actix_web::HttpRequest) -> Result<HttpResponse, actix_w
         .map(|title| TitlesItemTemplate {
             obsoleted: title.obsoleted,
             title: title.title.to_string(),
-            url: title_url(&title.title),
+            url: TitlePath::from(title.title).to_string(),
         })
         .filter(|template| all || !template.obsoleted)
         .collect::<Vec<TitlesItemTemplate>>();

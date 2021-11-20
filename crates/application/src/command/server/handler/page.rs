@@ -3,10 +3,9 @@ use std::str::FromStr;
 use crate::handler_helpers::is_all;
 use crate::helpers::{is_obsoleted, read_linked_map, read_obsoleted_map};
 use crate::template::{PageItemTemplate, PageTemplate, PageWithTitle};
-use crate::url_helpers::title_url;
 use actix_web::{web, HttpResponse, ResponseError};
 use askama::Template;
-use entity::{PageId, PagePath};
+use entity::{PageId, PagePath, TitlePath};
 use thiserror::Error;
 use use_case::{HasPageRepository, PageRepository};
 
@@ -75,7 +74,7 @@ pub async fn page<T: HasPageRepository>(
         page_id: &page_id.to_string(),
         page_url: &PagePath::from(page_id).to_string(),
         title: title.as_str(),
-        title_url: &title_url(&title),
+        title_url: &TitlePath::from(title.clone()).to_string(),
         html: markdown_html,
         obsoleted_by: &obsoleted_by,
     };

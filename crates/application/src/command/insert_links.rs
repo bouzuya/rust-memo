@@ -1,6 +1,5 @@
-use crate::url_helpers::title_url;
 use anyhow::{anyhow, Context};
-use entity::{PageContent, PageId, PageTitle};
+use entity::{PageContent, PageId, PageTitle, TitlePath};
 use use_case::{HasPageRepository, PageRepository};
 
 pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::Result<()> {
@@ -21,7 +20,7 @@ pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::
             .into_iter()
             .map(|link| -> anyhow::Result<String> {
                 let page_title = PageTitle::from(link.clone());
-                let url = title_url(&page_title);
+                let url = TitlePath::from(page_title).to_string();
                 Ok(format!("[{}]: {}", link, url))
             })
             .collect::<anyhow::Result<Vec<String>>>()?
