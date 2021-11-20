@@ -22,7 +22,7 @@ pub fn read_linked_map(
     Ok(map)
 }
 
-pub fn read_links(page_id: &PageId) -> std::io::Result<Vec<PageTitle>> {
+fn read_links(page_id: &PageId) -> std::io::Result<Vec<PageTitle>> {
     let file_name = to_file_name(page_id);
     let content = std::fs::read_to_string(&file_name)?;
     let links = read_links_impl(&content);
@@ -90,7 +90,7 @@ pub fn read_obsoleted_map(
     Ok(map)
 }
 
-pub fn read_title(page_id: &PageId) -> PageTitle {
+fn read_title(page_id: &PageId) -> PageTitle {
     use std::io::prelude::*;
     let file = match std::fs::File::open(&to_file_name(page_id)) {
         Ok(file) => file,
