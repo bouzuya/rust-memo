@@ -2,12 +2,12 @@ use std::collections::BTreeSet;
 
 use pulldown_cmark::{BrokenLink, Options, Parser};
 
-use crate::{PageId, PagePath};
+use crate::{PageId, PagePath, PageTitle, TitlePath};
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PageContent(String);
 
-fn broken_links_impl(content: &str) -> BTreeSet<String> {
+fn broken_links(content: &str) -> BTreeSet<String> {
     let mut res = BTreeSet::new();
     let mut callback = |broken_link: BrokenLink| {
         res.insert(broken_link.reference.to_owned());
@@ -20,8 +20,25 @@ fn broken_links_impl(content: &str) -> BTreeSet<String> {
 }
 
 impl PageContent {
-    pub fn broken_links(&self) -> BTreeSet<String> {
-        broken_links_impl(self.0.as_str())
+    pub fn ensure_links(&mut self) {
+        let links = broken_links(self.0.as_str());
+        if links.is_empty() {
+            return;
+        }
+        self.0.push('\n');
+        self.0.push_str(
+            links
+                .into_iter()
+                .map(|link| -> String {
+                    let page_title = PageTitle::from(link.clone());
+                    let url = TitlePath::from(page_title).to_string();
+                    format!("[{}]: {}", link, url)
+                })
+                .collect::<Vec<String>>()
+                .join("\n")
+                .as_str(),
+        );
+        self.0.push('\n');
     }
 
     pub fn replace_obsoletes(&mut self, page_id: PageId) {
@@ -65,7 +82,7 @@ mod tests {
         let set = |s: &[&str]| -> BTreeSet<String> {
             BTreeSet::from_iter(s.iter().map(|i| i.to_string()))
         };
-        let f = broken_links_impl;
+        let f = broken_links;
 
         assert!(f("").is_empty());
 
@@ -88,8 +105,8 @@ mod tests {
     }
 
     #[test]
-    fn broken_links_test() -> anyhow::Result<()> {
-        let page_content = PageContent::from(
+    fn ensure_links_test() -> anyhow::Result<()> {
+        let mut page_content = PageContent::from(
             vec![
                 "# title1",
                 "",
@@ -103,9 +120,25 @@ mod tests {
             ]
             .join("\n"),
         );
+        page_content.ensure_links();
         assert_eq!(
-            page_content.broken_links(),
-            BTreeSet::from_iter(["link1", "link2", "link3"].iter().map(|x| x.to_string()))
+            String::from(page_content),
+            vec![
+                "# title1",
+                "",
+                "[link1]",
+                "",
+                "[link2] [link3]",
+                "",
+                "[link1]",
+                "",
+                "",
+                "[link1]: /titles/link1",
+                "[link2]: /titles/link2",
+                "[link3]: /titles/link3",
+                "",
+            ]
+            .join("\n"),
         );
         Ok(())
     }
