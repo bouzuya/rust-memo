@@ -51,20 +51,9 @@ impl PageRepository for FsPageRepository {
     }
 
     fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>> {
-        // TODO: PageContent::title
-        let content = match self.find_content(page_id)? {
-            Some(x) => String::from(x),
-            None => return Ok(None),
-        };
-        let first_line = match content.lines().next() {
-            Some(x) => x,
-            None => return Ok(None),
-        };
-        let title = match first_line.strip_prefix("# ") {
-            Some(x) => x,
-            None => return Ok(None),
-        };
-        Ok(PageTitle::from_str(title).map(Some)?)
+        Ok(self
+            .find_content(page_id)?
+            .map(|page_content| page_content.title()))
     }
 
     fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()> {
@@ -113,7 +102,7 @@ mod tests {
         let page_id2 = PageId::from_str("20210203T040507Z")?;
         repository.save_content(&page_id2, page_content.clone())?;
         let page_id3 = PageId::from_str("20210203T040508Z")?;
-        repository.save_content(&page_id3, page_content.clone())?;
+        repository.save_content(&page_id3, page_content)?;
 
         assert_eq!(repository.find_ids()?, vec![page_id1, page_id2, page_id3],);
 
