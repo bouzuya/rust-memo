@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, str::FromStr};
 
 use pulldown_cmark::{BrokenLink, Options, Parser};
 
@@ -60,6 +60,20 @@ impl PageContent {
             .map(|s| s.to_string())
             .map(PageTitle::from)
             .unwrap_or_default()
+    }
+
+    pub fn title_links(&self) -> Vec<PageTitle> {
+        pulldown_cmark::Parser::new(self.0.as_str())
+            .filter_map(|event| match event {
+                pulldown_cmark::Event::End(tag) => Some(tag),
+                _ => None,
+            })
+            .filter_map(|tag| match tag {
+                pulldown_cmark::Tag::Link(_, to, _) => Some(to),
+                _ => None,
+            })
+            .filter_map(|to| TitlePath::from_str(to.as_ref()).map(PageTitle::from).ok())
+            .collect::<Vec<PageTitle>>()
     }
 }
 
@@ -211,6 +225,38 @@ mod tests {
         let page_content = PageContent::from(vec!["foo"].join("\n"));
         assert_eq!(page_content.title(), PageTitle::default());
         Ok(())
+    }
+
+    #[test]
+    fn title_links_test() {
+        let page_content = PageContent::from(
+            vec![
+                "# title1",
+                "",
+                "content1",
+                "",
+                "[title1]",
+                "",
+                "[title2] [title3]",
+                "",
+                "[20210203T040506Z]",
+                "",
+                "[title1]: /titles/title1",
+                "[title2]: /titles/title2",
+                "[title3]: /titles/title3",
+                "[20210203T040506Z]: /pages/20210203T040506Z",
+                "",
+            ]
+            .join("\n"),
+        );
+        assert_eq!(
+            page_content.title_links(),
+            vec!["title1", "title2", "title3"]
+                .iter()
+                .map(|s| s.to_string())
+                .map(PageTitle::from)
+                .collect::<Vec<PageTitle>>()
+        );
     }
 
     #[test]
