@@ -51,6 +51,16 @@ impl PageContent {
             PagePath::from(page_id),
         ));
     }
+
+    pub fn title(&self) -> PageTitle {
+        self.0
+            .lines()
+            .next()
+            .and_then(|first_line| first_line.strip_prefix("# "))
+            .map(|s| s.to_string())
+            .map(PageTitle::from)
+            .unwrap_or_default()
+    }
 }
 
 impl std::fmt::Display for PageContent {
@@ -191,6 +201,15 @@ mod tests {
             ]
             .join("\n"),
         );
+        Ok(())
+    }
+
+    #[test]
+    fn title_test() -> anyhow::Result<()> {
+        let page_content = PageContent::from(vec!["# title1", "", "content1"].join("\n"));
+        assert_eq!(page_content.title(), PageTitle::from("title1".to_string()));
+        let page_content = PageContent::from(vec!["foo"].join("\n"));
+        assert_eq!(page_content.title(), PageTitle::default());
         Ok(())
     }
 
