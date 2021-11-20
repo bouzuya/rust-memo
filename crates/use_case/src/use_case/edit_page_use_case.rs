@@ -11,9 +11,8 @@ pub trait EditPageUseCase: HasPageRepository {
             .with_context(|| anyhow!("file not found: {}", page_id))?;
         page_content.replace_obsoletes(*page_id);
         let new_page_id = PageId::new().context("This application is out of date.")?;
-        // TODO: PageRepository::save_content(&self, page_id: &PageId, page_content: PageContent) -> anyhow::Result<()>
         self.page_repository()
-            .save_content(&new_page_id, page_content.to_string())?;
+            .save_content(&new_page_id, page_content)?;
         Ok(new_page_id)
     }
 }

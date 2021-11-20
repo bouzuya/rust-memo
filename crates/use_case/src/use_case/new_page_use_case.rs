@@ -1,12 +1,12 @@
 use anyhow::Context;
-use entity::{PageId, PageTitle};
+use entity::{PageContent, PageId, PageTitle};
 
 use crate::{HasPageRepository, PageRepository};
 
 pub trait NewPageUseCase: HasPageRepository {
     fn new_page(&self, title: PageTitle) -> anyhow::Result<PageId> {
         let page_id = PageId::new().context("This application is out of date.")?;
-        let content = format!("# {}", title);
+        let content = PageContent::from(format!("# {}", title));
         self.page_repository()
             .save_content(&page_id, content)
             .map(|_| page_id)

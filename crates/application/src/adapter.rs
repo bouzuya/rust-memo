@@ -67,10 +67,10 @@ impl PageRepository for FsPageRepository {
         Ok(PageTitle::from_str(title).map(Some)?)
     }
 
-    fn save_content(&self, page_id: &PageId, content: String) -> anyhow::Result<()> {
+    fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()> {
         let file_name = to_file_name(page_id);
         let file_name = self.data_dir.join(file_name.as_str());
-        Ok(fs::write(file_name, content)?)
+        Ok(fs::write(file_name, String::from(content))?)
     }
 }
 
@@ -107,12 +107,13 @@ mod tests {
         let data_dir = temp_dir.path().to_path_buf();
         let repository = FsPageRepository::new(data_dir);
 
+        let page_content = PageContent::from("".to_string());
         let page_id1 = PageId::from_str("20210203T040506Z")?;
-        repository.save_content(&page_id1, "".to_string())?;
+        repository.save_content(&page_id1, page_content.clone())?;
         let page_id2 = PageId::from_str("20210203T040507Z")?;
-        repository.save_content(&page_id2, "".to_string())?;
+        repository.save_content(&page_id2, page_content.clone())?;
         let page_id3 = PageId::from_str("20210203T040508Z")?;
-        repository.save_content(&page_id3, "".to_string())?;
+        repository.save_content(&page_id3, page_content.clone())?;
 
         assert_eq!(repository.find_ids()?, vec![page_id1, page_id2, page_id3],);
 
@@ -146,12 +147,9 @@ mod tests {
 
         let page_id = PageId::from_str("20210203T040506Z")?;
         assert!(repository.find_content(&page_id)?.is_none());
-
-        repository.save_content(&page_id, "content".to_string())?;
-        assert_eq!(
-            repository.find_content(&page_id)?,
-            Some(PageContent::from("content".to_string()))
-        );
+        let page_content = PageContent::from("content".to_string());
+        repository.save_content(&page_id, page_content.clone())?;
+        assert_eq!(repository.find_content(&page_id)?, Some(page_content));
 
         Ok(())
     }

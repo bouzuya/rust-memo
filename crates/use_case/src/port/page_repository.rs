@@ -10,7 +10,7 @@ pub trait PageRepository {
 
     fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>>;
 
-    fn save_content(&self, page_id: &PageId, content: String) -> anyhow::Result<()>;
+    fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()>;
 }
 
 pub trait HasPageRepository {

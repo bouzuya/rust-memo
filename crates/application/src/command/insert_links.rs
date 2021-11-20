@@ -9,8 +9,6 @@ pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::
         .find_content(&page_id)?
         .with_context(|| anyhow!("file not found: {}", page_id))?;
     page_content.ensure_links();
-    let content = String::from(page_content);
-    // TODO: PageRepository::save_content(&self, page_id: &PageId, page_content: PageContent) -> anyhow::Result<()>
-    app.page_repository().save_content(&page_id, content)?;
+    app.page_repository().save_content(&page_id, page_content)?;
     Ok(())
 }
