@@ -262,6 +262,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "adapter_fs"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "entity",
+ "tempfile",
+ "use_case",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1506,6 +1516,7 @@ version = "0.6.7"
 dependencies = [
  "actix-rt",
  "actix-web",
+ "adapter_fs",
  "anyhow",
  "askama",
  "clap",

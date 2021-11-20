@@ -3,7 +3,10 @@ use std::{fs, path::PathBuf, str::FromStr};
 use entity::{PageContent, PageId, PageTitle};
 use use_case::PageRepository;
 
-use crate::helpers::to_file_name;
+// TODO: returns PathBuf
+pub fn to_file_name(page_id: &PageId) -> String {
+    format!("{}.md", page_id.to_string())
+}
 
 pub struct FsPageRepository {
     data_dir: PathBuf,

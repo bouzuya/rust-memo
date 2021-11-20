@@ -1,26 +1,16 @@
 [package]
-name = "rust-memo"
-version = "0.6.7"
+name = "adapter_fs"
+version = "0.0.0"
 authors = ["bouzuya <m@bouzuya.net>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-adapter_fs = { path = "../adapter_fs" }
-actix-rt = "1.1.1"
-actix-web = "2.0.0"
 anyhow = "1.0.45"
-askama = "0.10.3"
-clap = "2.33.1"
 entity = { path = "../entity" }
-listenfd = "0.3.3"
-pulldown-cmark = "0.8.0"
-regex = "1.5.4"
-structopt = "0.3.25"
-thiserror = "1.0.30"
-url = "2.1.1"
 use_case = { path = "../use_case" }
 
 [dev-dependencies]
+anyhow = "1.0.45"
 tempfile = "3.2.0"

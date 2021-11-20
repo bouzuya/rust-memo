@@ -1,4 +1,3 @@
-mod adapter;
 mod app;
 mod command;
 mod handler_helpers;

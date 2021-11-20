@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
+use adapter_fs::FsPageRepository;
 use use_case::{HasEditPageUseCase, HasEnsureLinksUseCase, HasNewPageUseCase, HasPageRepository};
-
-use crate::adapter::FsPageRepository;
 
 pub struct App {
     fs_repository: FsPageRepository,
