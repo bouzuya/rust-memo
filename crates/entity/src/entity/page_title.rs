@@ -41,16 +41,13 @@ impl From<PageTitle> for String {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
 
     #[test]
-    fn default_test() -> anyhow::Result<()> {
+    fn default_test() {
         let page_title1 = PageTitle::default();
-        let page_title2 = PageTitle::from_str("")?;
+        let page_title2 = PageTitle::from("".to_string());
         assert_eq!(page_title1, page_title2);
-        Ok(())
     }
 
     #[test]
@@ -59,13 +56,12 @@ mod tests {
     }
 
     #[test]
-    fn from_eq_test() -> anyhow::Result<()> {
+    fn from_eq_test() {
         let s = "title1";
-        let page_title1 = PageTitle::from_str(s)?;
-        let page_title2 = PageTitle::from_str(s)?;
-        assert_eq!(page_title1.to_string(), s.to_owned());
-        assert_eq!(page_title2.to_string(), s.to_owned());
+        let page_title1 = PageTitle::from(s.to_string());
+        let page_title2 = PageTitle::from(s.to_string());
+        assert_eq!(page_title1.to_string(), s);
+        assert_eq!(page_title2.to_string(), s);
         assert_eq!(page_title1, page_title2);
-        Ok(())
     }
 }

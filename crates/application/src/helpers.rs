@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use entity::{PageId, PageTitle, ParsePageTitleError};
+use entity::{PageId, PageTitle};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
@@ -26,12 +26,10 @@ pub fn read_links(page_id: &PageId) -> std::io::Result<Vec<PageTitle>> {
     let file_name = to_file_name(page_id);
     let content = std::fs::read_to_string(&file_name)?;
     let links = read_links_impl(&content);
-    // TODO: unwrap
     Ok(links
         .iter()
-        .map(|s| PageTitle::from_str(s))
-        .collect::<Result<Vec<PageTitle>, ParsePageTitleError>>()
-        .unwrap())
+        .map(|s| PageTitle::from(s.to_owned()))
+        .collect::<Vec<PageTitle>>())
 }
 
 fn read_links_impl(md: &str) -> Vec<String> {
@@ -104,8 +102,7 @@ pub fn read_title(page_id: &PageId) -> PageTitle {
         Err(_) => return PageTitle::default(),
     };
     if let Some(stripped) = buffer.strip_prefix("# ") {
-        // TODO: unwrap
-        PageTitle::from_str(stripped.trim()).unwrap()
+        PageTitle::from(stripped.trim().to_string())
     } else {
         PageTitle::default()
     }

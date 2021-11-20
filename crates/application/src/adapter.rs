@@ -129,7 +129,7 @@ mod tests {
         fs::write(file_path.as_path(), "# title1\n\ncontent")?;
         assert_eq!(
             repository.find_title(&page_id)?,
-            Some(PageTitle::from_str("title1")?)
+            Some(PageTitle::from("title1".to_string()))
         );
 
         Ok(())

@@ -1,7 +1,6 @@
 use crate::url_helpers::title_url;
 use anyhow::{anyhow, Context};
 use entity::{PageContent, PageId, PageTitle};
-use std::str::FromStr;
 use use_case::{HasPageRepository, PageRepository};
 
 pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::Result<()> {
@@ -21,7 +20,7 @@ pub fn insert_links<App: HasPageRepository>(app: App, id_like: &str) -> anyhow::
         links
             .into_iter()
             .map(|link| -> anyhow::Result<String> {
-                let page_title = PageTitle::from_str(link.as_str())?;
+                let page_title = PageTitle::from(link.clone());
                 let url = title_url(&page_title);
                 Ok(format!("[{}]: {}", link, url))
             })

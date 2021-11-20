@@ -23,8 +23,6 @@ pub trait HasNewPageUseCase {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
     use crate::MockPageRepository;
 
@@ -56,7 +54,7 @@ mod tests {
             // TODO: test new_page_id & content
             .returning(|_, _| Ok(()));
         let app = TestApp { page_repository };
-        let page_title = PageTitle::from_str("title1")?;
+        let page_title = PageTitle::from("title1".to_string());
         let _new_page_id = app.new_page_use_case().new_page(page_title)?;
         // TODO: test _new_page_id
         Ok(())
