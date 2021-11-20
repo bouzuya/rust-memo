@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use entity::{PageId, PageTitle};
+use entity::{PageId, PageTitle, TitlePath};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
@@ -43,9 +43,10 @@ fn read_links_impl(md: &str) -> Vec<String> {
             _ => None,
         })
         .filter_map(|to| {
-            to.strip_prefix("/titles/")
-                .and_then(|s| percent_encoding::percent_decode_str(s).decode_utf8().ok())
-                .map(|s| s.to_string())
+            TitlePath::from_str(to.as_ref())
+                .map(PageTitle::from)
+                .map(|page_title| page_title.to_string())
+                .ok()
         })
         .collect::<Vec<String>>()
 }
