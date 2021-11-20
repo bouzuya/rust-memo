@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use entity::{PageContent, PageId, PageTitle, TitlePath};
+use entity::{PageContent, PageId, PageTitle};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
