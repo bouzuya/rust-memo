@@ -1,6 +1,7 @@
 use std::{collections::BTreeSet, str::FromStr};
 
 use pulldown_cmark::{BrokenLink, Options, Parser};
+use regex::Regex;
 
 use crate::{PageId, PagePath, PageTitle, TitlePath};
 
@@ -39,6 +40,25 @@ impl PageContent {
                 .as_str(),
         );
         self.0.push('\n');
+    }
+
+    pub fn obsoletes(&self) -> Vec<PageId> {
+        self.0
+            .find("\n## Obsoletes")
+            .map(|index| {
+                let regex =
+                    Regex::new(r"^- \[(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)\]\(.*\)$").unwrap();
+                self.0[index..]
+                    .lines()
+                    .filter_map(|line| {
+                        regex
+                            .captures(line)
+                            .and_then(|captures| captures.get(1))
+                            .and_then(|m| PageId::from_str(m.as_str()).ok())
+                    })
+                    .collect::<Vec<PageId>>()
+            })
+            .unwrap_or_default()
     }
 
     pub fn replace_obsoletes(&mut self, page_id: PageId) {
@@ -178,6 +198,35 @@ mod tests {
             PageContent::from("content1".to_string()).to_string(),
             "content1"
         );
+    }
+
+    #[test]
+    fn obsoletes_test() -> anyhow::Result<()> {
+        let page_content = PageContent::from(vec!["# title1", "", "content1", ""].join("\n"));
+        assert_eq!(page_content.obsoletes(), vec![]);
+
+        let page_content = PageContent::from(
+            vec![
+                "# title1",
+                "",
+                "content1",
+                "",
+                "## Obsoletes",
+                "",
+                "- [20210203T040506Z](/pages/20210203T040506Z)",
+                "- [20210203T040507Z](/pages/20210203T040507Z)",
+                "",
+            ]
+            .join("\n"),
+        );
+        assert_eq!(
+            page_content.obsoletes(),
+            vec![
+                PageId::from_str("20210203T040506Z")?,
+                PageId::from_str("20210203T040507Z")?,
+            ]
+        );
+        Ok(())
     }
 
     #[test]

@@ -26,27 +26,13 @@ pub fn read_linked_map(
 }
 
 fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
-    use regex::Regex;
-    let re = Regex::new(r"^- \[(\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}Z)\]\(.*\)$").unwrap();
     let file_name = to_file_name(page_id);
     let content = match std::fs::read_to_string(&file_name) {
         Ok(x) => x,
         Err(_) => return Vec::new(),
     };
-    if let Some(index) = content.find("\n## Obsoletes") {
-        let mut obsoletes = Vec::new();
-        for line in content[index..].lines() {
-            if let Some(caps) = re.captures(line) {
-                let s = caps.get(1).unwrap().as_str();
-                if let Ok(page_id) = PageId::from_str(s) {
-                    obsoletes.push(page_id);
-                }
-            }
-        }
-        obsoletes
-    } else {
-        Vec::new()
-    }
+    let page_content = PageContent::from(content);
+    page_content.obsoletes()
 }
 
 pub fn read_obsoleted_map(
