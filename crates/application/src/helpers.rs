@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use entity::{PageId, PageTitle, TitlePath};
+use entity::{PageContent, PageId, PageTitle, TitlePath};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
@@ -12,7 +12,10 @@ pub fn read_linked_map(
     let mut map = std::collections::BTreeMap::new();
     let page_ids = list_ids()?;
     for &from_page_id in page_ids.iter() {
-        let tos = read_links(&from_page_id)?;
+        // TODO: use PageRepository::find_content
+        let file_name = to_file_name(&from_page_id);
+        let content = std::fs::read_to_string(&file_name)?;
+        let tos = PageContent::from(content).title_links();
         for to_page_title in tos.into_iter() {
             map.entry(to_page_title)
                 .or_insert_with(std::collections::BTreeSet::new)
@@ -20,35 +23,6 @@ pub fn read_linked_map(
         }
     }
     Ok(map)
-}
-
-fn read_links(page_id: &PageId) -> std::io::Result<Vec<PageTitle>> {
-    let file_name = to_file_name(page_id);
-    let content = std::fs::read_to_string(&file_name)?;
-    let links = read_links_impl(&content);
-    Ok(links
-        .iter()
-        .map(|s| PageTitle::from(s.to_owned()))
-        .collect::<Vec<PageTitle>>())
-}
-
-fn read_links_impl(md: &str) -> Vec<String> {
-    pulldown_cmark::Parser::new(md)
-        .filter_map(|event| match event {
-            pulldown_cmark::Event::End(tag) => Some(tag),
-            _ => None,
-        })
-        .filter_map(|tag| match tag {
-            pulldown_cmark::Tag::Link(_, to, _) => Some(to),
-            _ => None,
-        })
-        .filter_map(|to| {
-            TitlePath::from_str(to.as_ref())
-                .map(PageTitle::from)
-                .map(|page_title| page_title.to_string())
-                .ok()
-        })
-        .collect::<Vec<String>>()
 }
 
 fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
