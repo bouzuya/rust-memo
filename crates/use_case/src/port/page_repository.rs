@@ -1,4 +1,4 @@
-use entity::{PageContent, PageId, PageTitle};
+use entity::{PageContent, PageGraph, PageId, PageTitle};
 #[cfg(test)]
 use mockall::automock;
 
@@ -10,6 +10,19 @@ pub trait PageRepository {
 
     fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>>;
 
+    fn load_page_graph(&self) -> anyhow::Result<PageGraph> {
+        let mut page_graph = PageGraph::default();
+        for page_id in self.find_ids()? {
+            if let Some(page_content) = self.find_content(&page_id)? {
+                // TODO: PageGraph::add_page(PageContent);
+                for obsoleted in page_content.obsoletes() {
+                    page_graph.add_obsolete_link(page_id, obsoleted);
+                }
+            }
+        }
+        Ok(page_graph)
+    }
+
     fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()>;
 }
 
@@ -17,4 +30,61 @@ pub trait HasPageRepository {
     type PageRepository: PageRepository;
 
     fn page_repository(&self) -> &Self::PageRepository;
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::*;
+
+    #[test]
+    fn load_page_graph_test() -> anyhow::Result<()> {
+        struct TestRepository {}
+        impl PageRepository for TestRepository {
+            fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>> {
+                let page_id1 = PageId::from_str("20210203T040506Z")?;
+                let page_id2 = PageId::from_str("20210203T040507Z")?;
+                let page_content1 = PageContent::from(
+                    vec![
+                        "content1",
+                        "## Obsoletes",
+                        "",
+                        "- [20210203T040507Z](/pages/20210203T040507Z)",
+                        "",
+                    ]
+                    .join("\n"),
+                );
+                let page_content2 = PageContent::from("content2".to_string());
+                if page_id == &page_id1 {
+                    Ok(Some(page_content1))
+                } else if page_id == &page_id2 {
+                    Ok(Some(page_content2))
+                } else {
+                    unreachable!()
+                }
+            }
+
+            fn find_ids(&self) -> anyhow::Result<Vec<PageId>> {
+                let page_id1 = PageId::from_str("20210203T040506Z")?;
+                let page_id2 = PageId::from_str("20210203T040507Z")?;
+                Ok(vec![page_id1, page_id2])
+            }
+
+            fn find_title(&self, _: &PageId) -> anyhow::Result<Option<PageTitle>> {
+                unreachable!()
+            }
+
+            fn save_content(&self, _: &PageId, _: PageContent) -> anyhow::Result<()> {
+                unreachable!()
+            }
+        }
+        let page_repository = TestRepository {};
+        let mut expected = PageGraph::default();
+        let page_id1 = PageId::from_str("20210203T040506Z")?;
+        let page_id2 = PageId::from_str("20210203T040507Z")?;
+        expected.add_obsolete_link(page_id1, page_id2);
+        assert_eq!(page_repository.load_page_graph()?, expected);
+        Ok(())
+    }
 }
