@@ -43,17 +43,17 @@ mod tests {
             fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>> {
                 let page_id1 = PageId::from_str("20210203T040506Z")?;
                 let page_id2 = PageId::from_str("20210203T040507Z")?;
-                let page_content1 = PageContent::from(
+                let page_content1 = PageContent::from("# title1".to_string());
+                let page_content2 = PageContent::from(
                     vec![
-                        "content1",
+                        "# title1",
+                        "",
                         "## Obsoletes",
                         "",
-                        "- [20210203T040507Z](/pages/20210203T040507Z)",
-                        "",
+                        "- [20210203T040506Z](/pages/20210203T040506Z)",
                     ]
                     .join("\n"),
                 );
-                let page_content2 = PageContent::from("content2".to_string());
                 if page_id == &page_id1 {
                     Ok(Some(page_content1))
                 } else if page_id == &page_id2 {
@@ -80,17 +80,21 @@ mod tests {
         let page_repository = TestRepository {};
         let mut expected = PageGraph::default();
         let page_id1 = PageId::from_str("20210203T040506Z")?;
-        let page_content1 = PageContent::from(
+        let page_content1 = PageContent::from(vec!["# title1"].join("\n"));
+        let page_id2 = PageId::from_str("20210203T040507Z")?;
+        let page_content2 = PageContent::from(
             vec![
                 "# title1",
                 "",
                 "## Obsoletes",
                 "",
-                "- [20210203T040507Z](/pages/20210203T040507Z)",
+                "- [20210203T040506Z](/pages/20210203T040506Z)",
+                "",
             ]
             .join("\n"),
         );
         expected.add_page(Page::new(page_id1, page_content1));
+        expected.add_page(Page::new(page_id2, page_content2));
         assert_eq!(page_repository.load_page_graph()?, expected);
         Ok(())
     }
