@@ -1,19 +1,37 @@
+use std::collections::BTreeSet;
+
 use anyhow::{anyhow, Context};
-use entity::PageId;
+use entity::{PageId, PageIdOrPageTitle};
 
 use crate::{HasPageRepository, PageRepository};
 
 pub trait EditPageUseCase: HasPageRepository {
-    fn edit_page(&self, page_id: &PageId) -> anyhow::Result<PageId> {
+    fn edit_page(&self, page_id: &PageIdOrPageTitle) -> anyhow::Result<(PageId, PageId)> {
+        let page_id = match page_id {
+            PageIdOrPageTitle::PageId(page_id) => *page_id,
+            PageIdOrPageTitle::PageTitle(page_title) => {
+                let page_graph = self.page_repository().load_page_graph()?;
+                let page_ids = page_graph.titled(page_title);
+                let filtered_page_ids = page_ids
+                    .into_iter()
+                    .filter(|page_id| !page_graph.is_obsoleted(page_id))
+                    .collect::<BTreeSet<_>>();
+                filtered_page_ids
+                    .into_iter()
+                    .rev()
+                    .next()
+                    .ok_or_else(|| anyhow!("title not found"))?
+            }
+        };
         let mut page_content = self
             .page_repository()
-            .find_content(page_id)?
+            .find_content(&page_id)?
             .with_context(|| anyhow!("file not found: {}", page_id))?;
-        page_content.replace_obsoletes(*page_id);
+        page_content.replace_obsoletes(page_id);
         let new_page_id = PageId::new().context("This application is out of date.")?;
         self.page_repository()
             .save_content(&new_page_id, page_content)?;
-        Ok(new_page_id)
+        Ok((page_id, new_page_id))
     }
 }
 
@@ -68,7 +86,9 @@ mod tests {
             // TODO: test new_page_id & content
             .returning(|_, _| Ok(()));
         let app = TestApp { page_repository };
-        let _new_page_id = app.edit_page_use_case().edit_page(&page_id)?;
+        let _new_page_id = app
+            .edit_page_use_case()
+            .edit_page(&PageIdOrPageTitle::PageId(page_id))?;
         // TODO: test _new_page_id
         Ok(())
     }
