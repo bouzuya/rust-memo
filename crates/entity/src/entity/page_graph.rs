@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::PageId;
+use crate::{Page, PageId};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct PageGraph {
@@ -9,15 +9,18 @@ pub struct PageGraph {
 }
 
 impl PageGraph {
-    pub fn add_obsolete_link(&mut self, src: PageId, dst: PageId) {
-        self.obsoletes
-            .entry(src)
-            .or_insert_with(BTreeSet::new)
-            .insert(dst);
-        self.obsoleted_by
-            .entry(dst)
-            .or_insert_with(BTreeSet::new)
-            .insert(src);
+    pub fn add_page(&mut self, page: Page) {
+        let page_id = *page.id();
+        for obsoleted in page.content().obsoletes() {
+            self.obsoletes
+                .entry(page_id)
+                .or_insert_with(BTreeSet::new)
+                .insert(obsoleted);
+            self.obsoleted_by
+                .entry(obsoleted)
+                .or_insert_with(BTreeSet::new)
+                .insert(page_id);
+        }
     }
 
     pub fn is_obsoleted(&self, page_id: &PageId) -> bool {
@@ -40,6 +43,8 @@ impl PageGraph {
 mod tests {
     use std::str::FromStr;
 
+    use crate::PageContent;
+
     use super::*;
 
     #[test]
@@ -47,6 +52,28 @@ mod tests {
         let page_id1 = PageId::from_str("20210203T040506Z")?;
         let page_id2 = PageId::from_str("20210203T040507Z")?;
         let page_id3 = PageId::from_str("20210203T040508Z")?;
+        let page_content2 = PageContent::from(
+            vec![
+                "# title2",
+                "",
+                "## Obsoletes",
+                "",
+                "- [20210203T040506Z](/pages/20210203T040506Z)",
+                "",
+            ]
+            .join("\n"),
+        );
+        let page_content3 = PageContent::from(
+            vec![
+                "# title3",
+                "",
+                "## Obsoletes",
+                "",
+                "- [20210203T040506Z](/pages/20210203T040506Z)",
+                "",
+            ]
+            .join("\n"),
+        );
 
         let page_graph = PageGraph::default();
         assert!(!page_graph.is_obsoleted(&page_id1));
@@ -54,8 +81,8 @@ mod tests {
         assert!(page_graph.obsoletes(&page_id1).is_empty());
 
         let mut page_graph = PageGraph::default();
-        page_graph.add_obsolete_link(page_id2, page_id1);
-        page_graph.add_obsolete_link(page_id3, page_id1);
+        page_graph.add_page(Page::new(page_id2, page_content2));
+        page_graph.add_page(Page::new(page_id3, page_content3));
         assert!(page_graph.is_obsoleted(&page_id1));
         assert!(!page_graph.is_obsoleted(&page_id2));
         assert!(!page_graph.is_obsoleted(&page_id3));

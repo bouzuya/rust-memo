@@ -1,4 +1,4 @@
-use entity::{PageContent, PageGraph, PageId, PageTitle};
+use entity::{Page, PageContent, PageGraph, PageId, PageTitle};
 #[cfg(test)]
 use mockall::automock;
 
@@ -14,10 +14,8 @@ pub trait PageRepository {
         let mut page_graph = PageGraph::default();
         for page_id in self.find_ids()? {
             if let Some(page_content) = self.find_content(&page_id)? {
-                // TODO: PageGraph::add_page(PageContent);
-                for obsoleted in page_content.obsoletes() {
-                    page_graph.add_obsolete_link(page_id, obsoleted);
-                }
+                let page = Page::new(page_id, page_content);
+                page_graph.add_page(page);
             }
         }
         Ok(page_graph)
@@ -82,8 +80,17 @@ mod tests {
         let page_repository = TestRepository {};
         let mut expected = PageGraph::default();
         let page_id1 = PageId::from_str("20210203T040506Z")?;
-        let page_id2 = PageId::from_str("20210203T040507Z")?;
-        expected.add_obsolete_link(page_id1, page_id2);
+        let page_content1 = PageContent::from(
+            vec![
+                "# title1",
+                "",
+                "## Obsoletes",
+                "",
+                "- [20210203T040507Z](/pages/20210203T040507Z)",
+            ]
+            .join("\n"),
+        );
+        expected.add_page(Page::new(page_id1, page_content1));
         assert_eq!(page_repository.load_page_graph()?, expected);
         Ok(())
     }
