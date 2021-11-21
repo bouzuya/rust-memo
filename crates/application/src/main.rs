@@ -24,8 +24,11 @@ enum Subcommand {
         about = "Creates a new memo that obsoletes the specified memo"
     )]
     Edit {
-        #[structopt(name = "ID_LIKE", help = "the id of the memo to edit")]
-        id_like: String,
+        #[structopt(
+            name = "ID_LIKE_OR_TITLE",
+            help = "the id or title of the memo to edit"
+        )]
+        id_like_or_title: String,
     },
     #[structopt(name = "insert-links", about = "Inserts links into the memo")]
     InsertLinks {
@@ -71,7 +74,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = App::new(data_dir);
     let opt = Opt::from_args();
     match opt.subcommand {
-        Subcommand::Edit { id_like } => crate::command::edit(app, id_like.as_str())?,
+        Subcommand::Edit { id_like_or_title } => {
+            crate::command::edit(app, id_like_or_title.as_str())?
+        }
         Subcommand::InsertLinks { id_like } => crate::command::insert_links(app, id_like.as_str())?,
         Subcommand::Link { id_like_or_title } => crate::command::link(id_like_or_title.as_str())?,
         Subcommand::List { obsoleted } => crate::command::list(app, obsoleted)?,
