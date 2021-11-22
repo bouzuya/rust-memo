@@ -6,11 +6,11 @@ use entity::{PageId, PageIdOrPageTitle};
 use crate::{HasPageRepository, PageRepository};
 
 pub trait EditPageUseCase: HasPageRepository {
-    fn edit_page(&self, page_id: &PageIdOrPageTitle) -> anyhow::Result<(PageId, PageId)> {
+    fn edit_page(&self, page_id: &PageIdOrPageTitle) -> anyhow::Result<(PageId, PageId, bool)> {
+        let page_graph = self.page_repository().load_page_graph()?;
         let page_id = match page_id {
             PageIdOrPageTitle::PageId(page_id) => *page_id,
             PageIdOrPageTitle::PageTitle(page_title) => {
-                let page_graph = self.page_repository().load_page_graph()?;
                 let page_ids = page_graph.titled(page_title);
                 let filtered_page_ids = page_ids
                     .into_iter()
@@ -27,11 +27,12 @@ pub trait EditPageUseCase: HasPageRepository {
             .page_repository()
             .find_content(&page_id)?
             .with_context(|| anyhow!("file not found: {}", page_id))?;
+        let is_obsoleted = page_graph.is_obsoleted(&page_id);
         page_content.replace_obsoletes(page_id);
         let new_page_id = PageId::new().context("This application is out of date.")?;
         self.page_repository()
             .save_content(&new_page_id, page_content)?;
-        Ok((page_id, new_page_id))
+        Ok((page_id, new_page_id, is_obsoleted))
     }
 }
 
