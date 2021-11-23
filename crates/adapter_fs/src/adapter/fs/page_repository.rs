@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf, str::FromStr};
 
-use entity::{PageContent, PageId, PageTitle};
+use entity::{PageContent, PageId};
 use use_case::PageRepository;
 
 // TODO: returns PathBuf
@@ -53,12 +53,6 @@ impl PageRepository for FsPageRepository {
         Ok(ids)
     }
 
-    fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>> {
-        Ok(self
-            .find_content(page_id)?
-            .map(|page_content| page_content.title()))
-    }
-
     fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()> {
         let file_name = to_file_name(page_id);
         let file_name = self.data_dir.join(file_name.as_str());
@@ -108,25 +102,6 @@ mod tests {
         repository.save_content(&page_id3, page_content)?;
 
         assert_eq!(repository.find_ids()?, vec![page_id1, page_id2, page_id3],);
-
-        Ok(())
-    }
-
-    #[test]
-    fn find_title_test() -> anyhow::Result<()> {
-        let temp_dir = tempdir()?;
-        let data_dir = temp_dir.path().to_path_buf();
-        let repository = FsPageRepository::new(data_dir.clone());
-
-        let page_id = PageId::from_str("20210203T040506Z")?;
-        assert!(repository.find_content(&page_id)?.is_none());
-
-        let file_path = data_dir.join("20210203T040506Z.md");
-        fs::write(file_path.as_path(), "# title1\n\ncontent")?;
-        assert_eq!(
-            repository.find_title(&page_id)?,
-            Some(PageTitle::from("title1".to_string()))
-        );
 
         Ok(())
     }

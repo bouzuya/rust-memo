@@ -1,4 +1,4 @@
-use entity::{Page, PageContent, PageGraph, PageId, PageTitle};
+use entity::{Page, PageContent, PageGraph, PageId};
 #[cfg(test)]
 use mockall::automock;
 
@@ -7,8 +7,6 @@ pub trait PageRepository {
     fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>>;
 
     fn find_ids(&self) -> anyhow::Result<Vec<PageId>>;
-
-    fn find_title(&self, page_id: &PageId) -> anyhow::Result<Option<PageTitle>>;
 
     fn load_page_graph(&self) -> anyhow::Result<PageGraph> {
         let mut page_graph = PageGraph::default();
@@ -67,10 +65,6 @@ mod tests {
                 let page_id1 = PageId::from_str("20210203T040506Z")?;
                 let page_id2 = PageId::from_str("20210203T040507Z")?;
                 Ok(vec![page_id1, page_id2])
-            }
-
-            fn find_title(&self, _: &PageId) -> anyhow::Result<Option<PageTitle>> {
-                unreachable!()
             }
 
             fn save_content(&self, _: &PageId, _: PageContent) -> anyhow::Result<()> {

@@ -27,8 +27,9 @@ pub async fn page<T: HasPageRepository>(
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::NotFound, "invalid page_id format"))?;
     let title = app
         .page_repository()
-        .find_title(&page_id)
+        .find_content(&page_id)
         .map_err(|_| MyError(format!("IO Error: {}", page_id)))?
+        .map(|page_content| page_content.title())
         .ok_or_else(|| MyError(format!("page_id not found: {}", page_id)))?;
     let linked_map = read_linked_map()?;
     let obsoleted_map = read_obsoleted_map()?;
@@ -40,8 +41,9 @@ pub async fn page<T: HasPageRepository>(
         .map(|page_id| {
             let title = app
                 .page_repository()
-                .find_title(page_id)
+                .find_content(page_id)
                 .map_err(|_| MyError(format!("IO Error: {}", page_id)))?
+                .map(|page_content| page_content.title())
                 .ok_or_else(|| MyError(format!("page_id not found: {}", page_id)))?;
             Ok(PageWithTitle {
                 id: page_id.to_string(),

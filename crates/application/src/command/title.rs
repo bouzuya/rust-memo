@@ -8,8 +8,8 @@ pub fn title<App: HasPageRepository>(
     let page_id = PageId::from_like_str(id_like).expect("invalid ID format");
     let page_title = app
         .page_repository()
-        .find_title(&page_id)
-        .unwrap_or(None)
+        .find_content(&page_id)?
+        .map(|page_content| page_content.title())
         .unwrap_or_default();
     println!("{}", page_title.to_string());
     Ok(())
