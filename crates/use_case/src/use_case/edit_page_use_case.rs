@@ -48,7 +48,7 @@ pub trait HasEditPageUseCase {
 mod tests {
     use std::str::FromStr;
 
-    use entity::PageContent;
+    use entity::{PageContent, PageGraph};
     use mockall::predicate;
 
     use super::*;
@@ -78,6 +78,9 @@ mod tests {
     fn test() -> anyhow::Result<()> {
         let mut page_repository = MockPageRepository::new();
         let page_id = PageId::from_str("20210203T040506Z")?;
+        page_repository
+            .expect_load_page_graph()
+            .returning(|| Ok(PageGraph::default()));
         page_repository
             .expect_find_content()
             .with(predicate::eq(page_id))
