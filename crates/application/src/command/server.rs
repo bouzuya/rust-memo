@@ -18,7 +18,7 @@ pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> std
             .route("/pages", web::get().to(pages::<T>))
             .route("/pages/{id}", web::get().to(page::<T>))
             .route("/titles", web::get().to(titles))
-            .route("/titles/{title}", web::get().to(title))
+            .route("/titles/{title}", web::get().to(title::<T>))
     });
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
         server.listen(l)?

@@ -1,20 +1,35 @@
 use crate::handler_helpers::is_all;
-use crate::helpers::{read_obsoleted_map, read_title_map};
+use crate::helpers::read_obsoleted_map;
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
-use actix_web::HttpResponse;
+use actix_web::{web, HttpResponse};
 use askama::Template;
 use entity::{PageId, PagePath, PageTitle, TitlePath};
+use use_case::{HasPageRepository, PageRepository};
 
-pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse> {
+pub async fn title<T: HasPageRepository>(
+    req: actix_web::HttpRequest,
+    data: web::Data<T>,
+) -> std::io::Result<HttpResponse> {
+    let app = data.get_ref();
     let all = is_all(&req);
     let params: (String,) = req.match_info().load().unwrap();
     let obsoleted_map = read_obsoleted_map()?;
-    let title_map = read_title_map()?;
+    let page_graph = app.page_repository().load_page_graph().unwrap(); // TODO: unwrap
     let title = PageTitle::from(params.0);
-    if let Some(page_ids) = title_map.get(&title) {
+    let page_ids = page_graph.titled(&title);
+    if page_ids.is_empty() {
+        let template = TitleNotFoundTemplate {
+            title: title.as_str(),
+            title_url: &TitlePath::from(title.clone()).to_string(),
+        };
+        let html = template.render().unwrap();
+        Ok(HttpResponse::NotFound()
+            .content_type("text/html")
+            .body(html))
+    } else {
         let page_ids = page_ids
             .iter()
-            .filter(|page_id| all || obsoleted_map.get(page_id).is_none())
+            .filter(|page_id| all || !page_graph.is_obsoleted(page_id))
             .copied()
             .collect::<Vec<PageId>>();
         if page_ids.len() == 1 {
@@ -41,14 +56,5 @@ pub async fn title(req: actix_web::HttpRequest) -> std::io::Result<HttpResponse>
             let html = template.render().unwrap();
             Ok(HttpResponse::Ok().content_type("text/html").body(html))
         }
-    } else {
-        let template = TitleNotFoundTemplate {
-            title: title.as_str(),
-            title_url: &TitlePath::from(title.clone()).to_string(),
-        };
-        let html = template.render().unwrap();
-        Ok(HttpResponse::NotFound()
-            .content_type("text/html")
-            .body(html))
     }
 }
