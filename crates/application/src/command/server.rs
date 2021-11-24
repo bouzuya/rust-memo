@@ -1,10 +1,6 @@
 mod handler;
 
-use self::handler::index;
-use self::handler::page;
-use self::handler::pages;
-use self::handler::title;
-use self::handler::titles;
+use self::handler::{index, page, pages, title, title_pages, titles};
 use actix_web::web;
 use use_case::HasPageRepository;
 
@@ -19,6 +15,7 @@ pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> std
             .route("/pages/{id}", web::get().to(page::<T>))
             .route("/titles", web::get().to(titles))
             .route("/titles/{title}", web::get().to(title::<T>))
+            .route("/titles/{title}/pages", web::get().to(title_pages::<T>))
     });
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
         server.listen(l)?

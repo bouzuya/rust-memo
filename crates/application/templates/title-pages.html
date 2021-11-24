@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    <header class="page-header">
+      <h1><a href="{{ title_url }}">{{ title }} pages</a></h1>
+      <nav class="breadcrumbs">
+        <ul>
+          <li><a href="/">/</a></li>
+          <li><a href="/titles">titles</a></li>
+          <li><a href="{{ title_url }}">{{ title }}</a></li>
+          <li><a href="{{ title_url }}/pages">pages</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="page-body">
+      <ul>
+        {% for page in pages %}
+        <li>
+          <a href="{{ page.url }}">{{ page.id }}</a>
+          {% if page.obsoleted %}(obsoleted){% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </main>
+    <footer class="page-footer"></footer>
+  </body>
+</html>
