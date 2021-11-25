@@ -6,6 +6,7 @@ mod page_id_or_page_title;
 mod page_link;
 mod page_path;
 mod page_title;
+mod query;
 mod title_path;
 
 pub use self::page::*;
@@ -16,4 +17,5 @@ pub use self::page_id_or_page_title::*;
 pub use self::page_link::*;
 pub use self::page_path::*;
 pub use self::page_title::*;
+pub use self::query::*;
 pub use self::title_path::*;
