@@ -1,5 +1,5 @@
 mod edit;
-mod insert_links;
+mod ensure_links;
 mod link;
 mod list;
 mod list_title;
@@ -8,7 +8,7 @@ mod server;
 mod title;
 
 pub use self::edit::*;
-pub use self::insert_links::*;
+pub use self::ensure_links::*;
 pub use self::link::*;
 pub use self::list::*;
 pub use self::list_title::*;

@@ -30,8 +30,8 @@ enum Subcommand {
         )]
         id_like_or_title: String,
     },
-    #[structopt(name = "insert-links", about = "Inserts links into the memo")]
-    InsertLinks {
+    #[structopt(name = "ensure-links", about = "Ensures the links in the memo")]
+    EnsureLinks {
         #[structopt(name = "ID_LIKE", help = "the id of the memo to edit")]
         id_like: String,
     },
@@ -77,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Subcommand::Edit { id_like_or_title } => {
             crate::command::edit(app, id_like_or_title.as_str())?
         }
-        Subcommand::InsertLinks { id_like } => crate::command::insert_links(app, id_like.as_str())?,
+        Subcommand::EnsureLinks { id_like } => crate::command::ensure_links(app, id_like.as_str())?,
         Subcommand::Link { id_like_or_title } => crate::command::link(id_like_or_title.as_str())?,
         Subcommand::List { obsoleted } => crate::command::list(app, obsoleted)?,
         Subcommand::ListTitle { obsoleted } => crate::command::list_title(obsoleted)?,
