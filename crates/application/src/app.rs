@@ -1,7 +1,10 @@
 use std::path::PathBuf;
 
 use adapter_fs::FsPageRepository;
-use use_case::{HasEditPageUseCase, HasEnsureLinksUseCase, HasNewPageUseCase, HasPageRepository};
+use use_case::{
+    HasEditPageUseCase, HasEnsureLinksUseCase, HasListTitlesUseCase, HasNewPageUseCase,
+    HasPageRepository,
+};
 
 pub struct App {
     fs_repository: FsPageRepository,
@@ -34,6 +37,14 @@ impl HasEnsureLinksUseCase for App {
     type EnsureLinksUseCase = App;
 
     fn ensure_links_use_case(&self) -> &Self::EnsureLinksUseCase {
+        self
+    }
+}
+
+impl HasListTitlesUseCase for App {
+    type ListTitlesUseCase = App;
+
+    fn list_titles_use_case(&self) -> &Self::ListTitlesUseCase {
         self
     }
 }

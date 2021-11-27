@@ -80,7 +80,7 @@ async fn main() -> anyhow::Result<()> {
         Subcommand::EnsureLinks { id_like } => crate::command::ensure_links(app, id_like.as_str())?,
         Subcommand::Link { id_like_or_title } => crate::command::link(id_like_or_title.as_str())?,
         Subcommand::List { obsoleted } => crate::command::list(app, obsoleted)?,
-        Subcommand::ListTitle { obsoleted } => crate::command::list_title(obsoleted)?,
+        Subcommand::ListTitle { obsoleted } => crate::command::list_title(app, obsoleted)?,
         Subcommand::New { title } => crate::command::new(app, title.as_deref())?,
         Subcommand::Server => crate::command::server(app).await?,
         Subcommand::Title { id_like } => crate::command::title(app, id_like.as_str())?,
