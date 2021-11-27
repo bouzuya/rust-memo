@@ -9,7 +9,7 @@ use use_case::HasPageRepository;
 pub async fn pages<T: HasPageRepository>(
     req: actix_web::HttpRequest,
     data: Data<T>,
-) -> Result<HttpResponse, actix_web::Error> {
+) -> actix_web::Result<HttpResponse> {
     let app = data.get_ref();
     let all = is_all(&req);
     let pages = crate::use_case::list::list(app, all).map_err(|_| actix_web::Error::from(()))?;

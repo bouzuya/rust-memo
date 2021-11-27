@@ -7,7 +7,7 @@ use use_case::{HasPageRepository, PageRepository};
 pub async fn title_pages<T: HasPageRepository>(
     req: actix_web::HttpRequest,
     data: web::Data<T>,
-) -> std::io::Result<HttpResponse> {
+) -> actix_web::Result<HttpResponse> {
     let app = data.get_ref();
     let params: (String,) = req.match_info().load().unwrap();
     let page_graph = app.page_repository().load_page_graph().unwrap(); // TODO: unwrap

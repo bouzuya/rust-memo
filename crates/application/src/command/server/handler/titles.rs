@@ -5,7 +5,7 @@ use actix_web::HttpResponse;
 use askama::Template;
 use entity::TitlePath;
 
-pub async fn titles(req: actix_web::HttpRequest) -> Result<HttpResponse, actix_web::Error> {
+pub async fn titles(req: actix_web::HttpRequest) -> actix_web::Result<HttpResponse> {
     let all = is_all(&req);
     let titles =
         crate::use_case::list_title::list_title(all).map_err(|_| actix_web::Error::from(()))?;

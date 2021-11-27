@@ -19,7 +19,7 @@ impl ResponseError for MyError {}
 pub async fn page<T: HasPageRepository>(
     req: actix_web::HttpRequest,
     data: web::Data<T>,
-) -> actix_web::error::Result<HttpResponse> {
+) -> actix_web::Result<HttpResponse> {
     let app = data.get_ref();
     let all = is_all(&req);
     let params: (String,) = req.match_info().load().unwrap();
@@ -52,7 +52,7 @@ pub async fn page<T: HasPageRepository>(
                 url: PagePath::from(*page_id).to_string(),
             })
         })
-        .collect::<actix_web::error::Result<Vec<PageWithTitle>>>()?;
+        .collect::<actix_web::Result<Vec<PageWithTitle>>>()?;
     let obsoleted_by = obsoleted_map
         .get(&page_id)
         .unwrap_or(&std::collections::BTreeSet::new())
