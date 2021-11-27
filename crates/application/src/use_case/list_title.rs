@@ -7,7 +7,7 @@ pub struct TitleItem {
     pub obsoleted: bool,
 }
 
-pub fn list_title(all: bool) -> Result<Vec<TitleItem>, Box<dyn std::error::Error>> {
+pub fn list_title(all: bool) -> anyhow::Result<Vec<TitleItem>> {
     let obsoleted_map = read_obsoleted_map()?;
     let title_map = read_title_map()?;
     let titles = title_map

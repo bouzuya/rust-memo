@@ -8,10 +8,7 @@ pub struct PageItem {
     pub obsoleted: bool,
 }
 
-pub fn list<App: HasPageRepository>(
-    app: &App,
-    all: bool,
-) -> Result<Vec<PageItem>, Box<dyn std::error::Error>> {
+pub fn list<App: HasPageRepository>(app: &App, all: bool) -> anyhow::Result<Vec<PageItem>> {
     let obsoleted_map = read_obsoleted_map()?;
     let mut page_ids = app.page_repository().find_ids()?;
     page_ids.reverse();

@@ -1,6 +1,6 @@
 use entity::{PageId, PagePath, PageTitle, TitlePath};
 
-pub fn link(id_like_or_title: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn link(id_like_or_title: &str) -> anyhow::Result<()> {
     let url = match PageId::from_like_str(id_like_or_title) {
         Ok(page_id) => PagePath::from(page_id).to_string(),
         Err(_) => {

@@ -69,7 +69,7 @@ enum Subcommand {
 }
 
 #[actix_rt::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     let data_dir = env::current_dir()?;
     let app = App::new(data_dir);
     let opt = Opt::from_args();

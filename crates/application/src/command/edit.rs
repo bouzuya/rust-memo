@@ -3,10 +3,7 @@ use use_case::{EditPageUseCase, HasEditPageUseCase};
 
 use crate::helpers::to_file_name;
 
-pub fn edit<T: HasEditPageUseCase>(
-    app: T,
-    id_like_or_title: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn edit<T: HasEditPageUseCase>(app: T, id_like_or_title: &str) -> anyhow::Result<()> {
     let page_id_or_page_title = PageIdOrPageTitle::from(id_like_or_title);
     let (old_page_id, new_page_id, is_obsoleted) =
         app.edit_page_use_case().edit_page(&page_id_or_page_title)?;
