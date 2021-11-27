@@ -22,7 +22,7 @@ pub async fn page<T: HasPageRepository>(
 ) -> actix_web::Result<HttpResponse> {
     let app = data.get_ref();
     let all = is_all(&req);
-    let params: (String,) = req.match_info().load().unwrap();
+    let params: (String,) = req.match_info().load()?;
     let page_id = PageId::from_str(&params.0)
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::NotFound, "invalid page_id format"))?;
     let title = app
@@ -81,6 +81,6 @@ pub async fn page<T: HasPageRepository>(
         html: markdown_html,
         obsoleted_by: &obsoleted_by,
     };
-    let html = template.render().unwrap();
+    let html = template.render().map_err(|_| actix_web::Error::from(()))?;
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }

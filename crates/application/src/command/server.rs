@@ -4,7 +4,7 @@ use self::handler::{index, page, pages, title, title_pages, titles};
 use actix_web::web;
 use use_case::HasPageRepository;
 
-pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> std::io::Result<()> {
+pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> anyhow::Result<()> {
     let data = web::Data::new(app);
     let mut listenfd = listenfd::ListenFd::from_env();
     let mut server = actix_web::HttpServer::new(move || {
@@ -17,7 +17,7 @@ pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> std
             .route("/titles/{title}", web::get().to(title::<T>))
             .route("/titles/{title}/pages", web::get().to(title_pages::<T>))
     });
-    server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+    server = if let Some(l) = listenfd.take_tcp_listener(0)? {
         server.listen(l)?
     } else {
         server.bind("127.0.0.1:3000")?
@@ -26,5 +26,5 @@ pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> std
     for (addr, scheme) in server.addrs_with_scheme().iter() {
         println!("- {}://{}", scheme, addr);
     }
-    server.run().await
+    Ok(server.run().await?)
 }

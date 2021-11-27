@@ -25,6 +25,6 @@ pub async fn pages<T: HasPageRepository>(
         title: &pages_url(),
         pages: &pages,
     };
-    let html = template.render().unwrap();
+    let html = template.render().map_err(|_| actix_web::Error::from(()))?;
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }

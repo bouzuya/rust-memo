@@ -23,6 +23,6 @@ pub async fn titles(req: actix_web::HttpRequest) -> actix_web::Result<HttpRespon
         title: &titles_url(),
         titles: &titles,
     };
-    let html = template.render().unwrap();
+    let html = template.render().map_err(|_| actix_web::Error::from(()))?;
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }

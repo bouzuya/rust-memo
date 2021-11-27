@@ -12,9 +12,12 @@ pub async fn title<T: HasPageRepository>(
 ) -> actix_web::Result<HttpResponse> {
     let app = data.get_ref();
     let all = is_all(&req);
-    let params: (String,) = req.match_info().load().unwrap();
+    let params: (String,) = req.match_info().load()?;
     let obsoleted_map = read_obsoleted_map()?;
-    let page_graph = app.page_repository().load_page_graph().unwrap(); // TODO: unwrap
+    let page_graph = app
+        .page_repository()
+        .load_page_graph()
+        .map_err(|_| actix_web::Error::from(()))?;
     let title = PageTitle::from(params.0);
     let page_ids = page_graph.titled(&title);
     if page_ids.is_empty() {
@@ -22,7 +25,7 @@ pub async fn title<T: HasPageRepository>(
             title: title.as_str(),
             title_url: &TitlePath::from(title.clone()).to_string(),
         };
-        let html = template.render().unwrap();
+        let html = template.render().map_err(|_| actix_web::Error::from(()))?;
         Ok(HttpResponse::NotFound()
             .content_type("text/html")
             .body(html))
@@ -53,7 +56,7 @@ pub async fn title<T: HasPageRepository>(
                 title_url: &TitlePath::from(title.clone()).to_string(),
                 pages: &pages,
             };
-            let html = template.render().unwrap();
+            let html = template.render().map_err(|_| actix_web::Error::from(()))?;
             Ok(HttpResponse::Ok().content_type("text/html").body(html))
         }
     }
