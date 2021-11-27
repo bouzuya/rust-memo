@@ -50,6 +50,13 @@ impl PageGraph {
         self.titles.get(page_id).cloned()
     }
 
+    pub fn titles(&self) -> BTreeSet<PageTitle> {
+        self.titles
+            .values()
+            .cloned()
+            .collect::<BTreeSet<PageTitle>>()
+    }
+
     pub fn titled(&self, page_title: &PageTitle) -> BTreeSet<PageId> {
         self.titled.get(page_title).cloned().unwrap_or_default()
     }
@@ -152,6 +159,33 @@ mod tests {
         assert_eq!(
             page_graph.titled(&page_title3),
             vec![page_id3].into_iter().collect::<BTreeSet<_>>()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn titles_test() -> anyhow::Result<()> {
+        let page_id1 = PageId::from_str("20210203T040506Z")?;
+        let page_id2 = PageId::from_str("20210203T040507Z")?;
+        let page_id3 = PageId::from_str("20210203T040508Z")?;
+        let page_content1 = PageContent::from("# title1".to_string());
+        let page_content2 = PageContent::from("# title1".to_string());
+        let page_content3 = PageContent::from("# title3".to_string());
+        let page_title1 = PageTitle::from("title1".to_string());
+        let page_title3 = PageTitle::from("title3".to_string());
+
+        let page_graph = PageGraph::default();
+        assert!(page_graph.titles().is_empty());
+
+        let mut page_graph = PageGraph::default();
+        page_graph.add_page(Page::new(page_id1, page_content1));
+        page_graph.add_page(Page::new(page_id2, page_content2));
+        page_graph.add_page(Page::new(page_id3, page_content3));
+        assert_eq!(
+            page_graph.titles(),
+            vec![page_title1, page_title3]
+                .into_iter()
+                .collect::<BTreeSet<_>>()
         );
         Ok(())
     }
