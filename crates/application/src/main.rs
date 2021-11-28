@@ -9,6 +9,7 @@ mod use_case;
 use std::env;
 
 use app::App;
+use entity::Query;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -59,6 +60,11 @@ enum Subcommand {
         )]
         title: Option<String>,
     },
+    #[structopt(name = "search", about = "Searchs by query")]
+    Search {
+        #[structopt(name = "QUERY", help = "the query")]
+        query: Query,
+    },
     #[structopt(name = "server", about = "Runs server")]
     Server,
     #[structopt(name = "title", about = "Print the title of the memo")]
@@ -82,6 +88,7 @@ async fn main() -> anyhow::Result<()> {
         Subcommand::List { obsoleted } => crate::command::list(app, obsoleted)?,
         Subcommand::ListTitle { obsoleted } => crate::command::list_title(app, obsoleted)?,
         Subcommand::New { title } => crate::command::new(app, title.as_deref())?,
+        Subcommand::Search { query } => crate::command::search(app, query)?,
         Subcommand::Server => crate::command::server(app).await?,
         Subcommand::Title { id_like } => crate::command::title(app, id_like.as_str())?,
     }
