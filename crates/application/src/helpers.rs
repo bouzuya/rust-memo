@@ -50,38 +50,6 @@ pub fn read_obsoleted_map(
     Ok(map)
 }
 
-fn read_title(page_id: &PageId) -> PageTitle {
-    use std::io::prelude::*;
-    let file = match std::fs::File::open(&to_file_name(page_id)) {
-        Ok(file) => file,
-        Err(_) => return PageTitle::default(),
-    };
-    let mut reader = std::io::BufReader::new(file);
-    let mut buffer = String::new();
-    match reader.read_line(&mut buffer) {
-        Ok(_) => {}
-        Err(_) => return PageTitle::default(),
-    };
-    if let Some(stripped) = buffer.strip_prefix("# ") {
-        PageTitle::from(stripped.trim().to_string())
-    } else {
-        PageTitle::default()
-    }
-}
-
-pub fn read_title_map() -> std::io::Result<std::collections::BTreeMap<PageTitle, Vec<PageId>>> {
-    let mut title_map = std::collections::BTreeMap::new();
-    let page_ids = list_ids()?;
-    for &page_id in page_ids.iter() {
-        let title = read_title(&page_id);
-        title_map
-            .entry(title)
-            .or_insert_with(Vec::new)
-            .push(page_id);
-    }
-    Ok(title_map)
-}
-
 fn list_ids() -> std::io::Result<Vec<PageId>> {
     let mut ids = vec![];
     for res in std::fs::read_dir(".")? {

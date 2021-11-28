@@ -1,20 +1,27 @@
 use crate::handler_helpers::is_all;
 use crate::template::{TitlesItemTemplate, TitlesTemplate};
 use crate::url_helpers::titles_url;
-use actix_web::HttpResponse;
+use actix_web::{web, HttpResponse};
 use askama::Template;
 use entity::TitlePath;
+use use_case::{HasListTitlesUseCase, ListTitlesUseCase};
 
-pub async fn titles(req: actix_web::HttpRequest) -> actix_web::Result<HttpResponse> {
+pub async fn titles<T: HasListTitlesUseCase>(
+    req: actix_web::HttpRequest,
+    data: web::Data<T>,
+) -> actix_web::Result<HttpResponse> {
+    let app = data.get_ref();
     let all = is_all(&req);
-    let titles =
-        crate::use_case::list_title::list_title(all).map_err(|_| actix_web::Error::from(()))?;
+    let titles = app
+        .list_titles_use_case()
+        .list_titles(all)
+        .map_err(|_| actix_web::Error::from(()))?;
     let titles = titles
         .into_iter()
         .map(|title| TitlesItemTemplate {
-            obsoleted: title.obsoleted,
-            title: title.title.to_string(),
-            url: TitlePath::from(title.title).to_string(),
+            obsoleted: title.1,
+            title: title.0.to_string(),
+            url: TitlePath::from(title.0).to_string(),
         })
         .filter(|template| all || !template.obsoleted)
         .collect::<Vec<TitlesItemTemplate>>();

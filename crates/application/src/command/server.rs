@@ -2,9 +2,11 @@ mod handler;
 
 use self::handler::{index, page, pages, title, title_pages, titles};
 use actix_web::web;
-use use_case::HasPageRepository;
+use use_case::{HasListTitlesUseCase, HasPageRepository};
 
-pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> anyhow::Result<()> {
+pub async fn server<T: HasListTitlesUseCase + HasPageRepository + Send + Sync + 'static>(
+    app: T,
+) -> anyhow::Result<()> {
     let data = web::Data::new(app);
     let mut listenfd = listenfd::ListenFd::from_env();
     let mut server = actix_web::HttpServer::new(move || {
@@ -13,7 +15,7 @@ pub async fn server<T: HasPageRepository + Send + Sync + 'static>(app: T) -> any
             .route("/", web::get().to(index))
             .route("/pages", web::get().to(pages::<T>))
             .route("/pages/{id}", web::get().to(page::<T>))
-            .route("/titles", web::get().to(titles))
+            .route("/titles", web::get().to(titles::<T>))
             .route("/titles/{title}", web::get().to(title::<T>))
             .route("/titles/{title}/pages", web::get().to(title_pages::<T>))
     });
