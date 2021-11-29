@@ -1,3 +1,4 @@
+mod column_number;
 mod line_number;
 mod page;
 mod page_content;
@@ -10,6 +11,7 @@ mod page_title;
 mod query;
 mod title_path;
 
+pub use self::column_number::*;
 pub use self::line_number::*;
 pub use self::page::*;
 pub use self::page_content::*;
