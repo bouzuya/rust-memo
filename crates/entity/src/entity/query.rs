@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use thiserror::Error;
 
-use crate::LineNumber;
+use crate::{ColumnNumber, LineNumber};
 
 #[derive(Debug, Error)]
 #[error("parse query error")]
@@ -12,13 +12,14 @@ pub struct ParseQueryError;
 pub struct Query(String);
 
 impl Query {
-    pub fn matches(&self, content: &str) -> Vec<(LineNumber, usize)> {
+    pub fn matches(&self, content: &str) -> Vec<(LineNumber, ColumnNumber)> {
         let mut matches = vec![];
         for (line, line_content) in content.lines().enumerate() {
             if let Some(col) = line_content.find(self.0.as_str()) {
                 matches.push((
                     LineNumber::try_from(line + 1).expect("invalid line"),
-                    line_content[..col].chars().count() + 1,
+                    ColumnNumber::try_from(line_content[..col].chars().count() + 1)
+                        .expect("invalid column"),
                 ));
             }
         }
@@ -49,22 +50,25 @@ mod tests {
     #[test]
     fn matches_test() -> anyhow::Result<()> {
         let l1 = LineNumber::try_from(1_usize)?;
-        let l2 = LineNumber::try_from(1_usize)?;
+        let l2 = LineNumber::try_from(2_usize)?;
+        let c1 = ColumnNumber::try_from(1_usize)?;
+        let c2 = ColumnNumber::try_from(2_usize)?;
+        let c3 = ColumnNumber::try_from(3_usize)?;
         let query = Query::from_str("a")?;
         assert!(query.matches("").is_empty());
-        assert_eq!(query.matches("a"), vec![(l1, 1)]);
-        assert_eq!(query.matches("ba"), vec![(l1, 2)]);
-        assert_eq!(query.matches("aba"), vec![(l1, 1)]);
+        assert_eq!(query.matches("a"), vec![(l1, c1)]);
+        assert_eq!(query.matches("ba"), vec![(l1, c2)]);
+        assert_eq!(query.matches("aba"), vec![(l1, c1)]);
         assert_eq!(query.matches("\n"), vec![]);
-        assert_eq!(query.matches("a\n"), vec![(l1, 1)]);
-        assert_eq!(query.matches("a\na"), vec![(l1, 1), (l2, 1)]);
-        assert_eq!(query.matches("a\nba"), vec![(l1, 1), (l2, 2)]);
-        assert_eq!(query.matches("\na"), vec![(l2, 1)]);
+        assert_eq!(query.matches("a\n"), vec![(l1, c1)]);
+        assert_eq!(query.matches("a\na"), vec![(l1, c1), (l2, c1)]);
+        assert_eq!(query.matches("a\nba"), vec![(l1, c1), (l2, c2)]);
+        assert_eq!(query.matches("\na"), vec![(l2, c1)]);
 
         let query = Query::from_str("あ")?;
-        assert_eq!(query.matches("あいうえお"), vec![(l1, 1)]);
+        assert_eq!(query.matches("あいうえお"), vec![(l1, c1)]);
         let query = Query::from_str("く")?;
-        assert_eq!(query.matches("あいうえお\nかきくけこ"), vec![(l2, 3)]);
+        assert_eq!(query.matches("あいうえお\nかきくけこ"), vec![(l2, c3)]);
         Ok(())
     }
 
