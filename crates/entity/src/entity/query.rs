@@ -12,7 +12,7 @@ impl Query {
         let mut matches = vec![];
         for (line, line_content) in content.lines().enumerate() {
             if let Some(col) = line_content.find(self.0.as_str()) {
-                matches.push((line + 1, col + 1));
+                matches.push((line + 1, line_content[..col].chars().count() + 1));
             }
         }
         matches
@@ -51,6 +51,11 @@ mod tests {
         assert_eq!(query.matches("a\na"), vec![(1, 1), (2, 1)]);
         assert_eq!(query.matches("a\nba"), vec![(1, 1), (2, 2)]);
         assert_eq!(query.matches("\na"), vec![(2, 1)]);
+
+        let query = Query::from_str("あ")?;
+        assert_eq!(query.matches("あいうえお"), vec![(1, 1)]);
+        let query = Query::from_str("く")?;
+        assert_eq!(query.matches("あいうえお\nかきくけこ"), vec![(2, 3)]);
         Ok(())
     }
 
