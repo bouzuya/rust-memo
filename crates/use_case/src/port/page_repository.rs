@@ -1,13 +1,12 @@
-use entity::{Page, PageContent, PageGraph, PageId, Query};
+use entity::{LineNumber, Page, PageContent, PageGraph, PageId, Query};
 #[cfg(test)]
 use mockall::automock;
 
 #[cfg_attr(test, automock)]
 pub trait PageRepository {
     // TODO: add tests
-    // TODO: add LineNumber
     // TODO: add ColumnNumber
-    fn find_by_query(&self, query: &Query) -> anyhow::Result<Vec<(PageId, usize, usize)>> {
+    fn find_by_query(&self, query: &Query) -> anyhow::Result<Vec<(PageId, LineNumber, usize)>> {
         let mut res = vec![];
         for page_id in self.find_ids()? {
             let page_content = self.find_content(&page_id)?;
