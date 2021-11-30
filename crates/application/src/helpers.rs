@@ -1,28 +1,10 @@
 use std::str::FromStr;
 
-use entity::{PageContent, PageId, PageTitle};
+use entity::{PageContent, PageId};
 
 // TODO: returns PathBuf
 pub fn to_file_name(page_id: &PageId) -> String {
     format!("{}.md", page_id.to_string())
-}
-
-pub fn read_linked_map(
-) -> std::io::Result<std::collections::BTreeMap<PageTitle, std::collections::BTreeSet<PageId>>> {
-    let mut map = std::collections::BTreeMap::new();
-    let page_ids = list_ids()?;
-    for &from_page_id in page_ids.iter() {
-        // TODO: use PageRepository::find_content
-        let file_name = to_file_name(&from_page_id);
-        let content = std::fs::read_to_string(&file_name)?;
-        let tos = PageContent::from(content).title_links();
-        for to_page_title in tos.into_iter() {
-            map.entry(to_page_title)
-                .or_insert_with(std::collections::BTreeSet::new)
-                .insert(from_page_id);
-        }
-    }
-    Ok(map)
 }
 
 fn read_obsoletes(page_id: &PageId) -> Vec<PageId> {
