@@ -1,5 +1,4 @@
 use crate::handler_helpers::is_all;
-use crate::helpers::read_obsoleted_map;
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
 use actix_web::{web, HttpResponse};
 use askama::Template;
@@ -13,7 +12,6 @@ pub async fn title<T: HasPageRepository>(
     let app = data.get_ref();
     let all = is_all(&req);
     let params: (String,) = req.match_info().load()?;
-    let obsoleted_map = read_obsoleted_map()?;
     let page_graph = app
         .page_repository()
         .load_page_graph()
@@ -47,7 +45,7 @@ pub async fn title<T: HasPageRepository>(
                 .iter()
                 .map(|page_id| PageItemTemplate {
                     id: page_id.to_string(),
-                    obsoleted: obsoleted_map.get(page_id).is_some(),
+                    obsoleted: page_graph.is_obsoleted(page_id),
                     url: PagePath::from(*page_id).to_string(),
                 })
                 .collect::<Vec<PageItemTemplate>>();

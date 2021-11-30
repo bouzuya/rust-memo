@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use crate::handler_helpers::is_all;
-use crate::helpers::{is_obsoleted, read_obsoleted_map};
 use crate::template::{PageItemTemplate, PageTemplate, PageWithTitle};
 use actix_web::{web, HttpResponse, ResponseError};
 use askama::Template;
@@ -31,7 +30,6 @@ pub async fn page<T: HasPageRepository>(
         .map_err(|_| MyError(format!("IO Error: {}", page_id)))?
         .map(|page_content| page_content.title())
         .ok_or_else(|| MyError(format!("page_id not found: {}", page_id)))?;
-    let obsoleted_map = read_obsoleted_map()?;
     let page_graph = app
         .page_repository()
         .load_page_graph()
@@ -39,7 +37,7 @@ pub async fn page<T: HasPageRepository>(
     let linked_by = page_graph
         .find_ids_link_to(&title)
         .iter()
-        .filter(|&page_id| all || !is_obsoleted(&obsoleted_map, page_id))
+        .filter(|page_id| all || !page_graph.is_obsoleted(page_id))
         .map(|page_id| {
             let title = app
                 .page_repository()
@@ -49,19 +47,18 @@ pub async fn page<T: HasPageRepository>(
                 .ok_or_else(|| MyError(format!("page_id not found: {}", page_id)))?;
             Ok(PageWithTitle {
                 id: page_id.to_string(),
-                obsoleted: is_obsoleted(&obsoleted_map, page_id),
+                obsoleted: page_graph.is_obsoleted(page_id),
                 title: title.to_string(),
                 url: PagePath::from(*page_id).to_string(),
             })
         })
         .collect::<actix_web::Result<Vec<PageWithTitle>>>()?;
-    let obsoleted_by = obsoleted_map
-        .get(&page_id)
-        .unwrap_or(&std::collections::BTreeSet::new())
+    let obsoleted_by = page_graph
+        .obsoleted_by(&page_id)
         .iter()
         .map(|page_id| PageItemTemplate {
             id: page_id.to_string(),
-            obsoleted: is_obsoleted(&obsoleted_map, page_id),
+            obsoleted: page_graph.is_obsoleted(page_id),
             url: PagePath::from(*page_id).to_string(),
         })
         .collect::<Vec<PageItemTemplate>>();
