@@ -64,6 +64,8 @@ enum Subcommand {
     Search {
         #[structopt(name = "QUERY", help = "the query")]
         query: Query,
+        #[structopt(long = "obsoleted", help = "Prints obsoleted memo titles")]
+        obsoleted: bool,
     },
     #[structopt(name = "server", about = "Runs server")]
     Server,
@@ -88,7 +90,7 @@ async fn main() -> anyhow::Result<()> {
         Subcommand::List { obsoleted } => crate::command::list(app, obsoleted)?,
         Subcommand::ListTitle { obsoleted } => crate::command::list_title(app, obsoleted)?,
         Subcommand::New { title } => crate::command::new(app, title.as_deref())?,
-        Subcommand::Search { query } => crate::command::search(app, query)?,
+        Subcommand::Search { obsoleted, query } => crate::command::search(app, query, obsoleted)?,
         Subcommand::Server => crate::command::server(app).await?,
         Subcommand::Title { id_like } => crate::command::title(app, id_like.as_str())?,
     }
