@@ -34,7 +34,7 @@ enum Subcommand {
     #[structopt(name = "ensure-links", about = "Ensures the links in the memo")]
     EnsureLinks {
         #[structopt(name = "ID_LIKE", help = "the id of the memo to edit")]
-        id_like: String,
+        id_like: Option<String>,
     },
     #[structopt(name = "link", about = "Shows a link for memo")]
     Link {
@@ -85,7 +85,7 @@ async fn main() -> anyhow::Result<()> {
         Subcommand::Edit { id_like_or_title } => {
             crate::command::edit(app, id_like_or_title.as_str())?
         }
-        Subcommand::EnsureLinks { id_like } => crate::command::ensure_links(app, id_like.as_str())?,
+        Subcommand::EnsureLinks { id_like } => crate::command::ensure_links(app, id_like)?,
         Subcommand::Link { id_like_or_title } => crate::command::link(id_like_or_title.as_str())?,
         Subcommand::List { obsoleted } => crate::command::list(app, obsoleted)?,
         Subcommand::ListTitle { obsoleted } => crate::command::list_title(app, obsoleted)?,
