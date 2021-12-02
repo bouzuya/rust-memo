@@ -81,17 +81,14 @@ async fn main() -> anyhow::Result<()> {
     let app = App::new(data_dir);
     let opt = Opt::from_args();
     match opt.subcommand {
-        Subcommand::Edit { id_like_or_title } => {
-            crate::command::edit(app, id_like_or_title.as_str())?
-        }
-        Subcommand::EnsureLinks { id_like } => crate::command::ensure_links(app, id_like)?,
-        Subcommand::Link { id_like_or_title } => crate::command::link(id_like_or_title.as_str())?,
-        Subcommand::List { obsoleted } => crate::command::list(app, obsoleted)?,
-        Subcommand::ListTitle { obsoleted } => crate::command::list_title(app, obsoleted)?,
-        Subcommand::New { title } => crate::command::new(app, title.as_deref())?,
-        Subcommand::Search { obsoleted, query } => crate::command::search(app, query, obsoleted)?,
-        Subcommand::Server => crate::command::server(app).await?,
-        Subcommand::Title { id_like } => crate::command::title(app, id_like.as_str())?,
+        Subcommand::Edit { id_like_or_title } => command::edit(app, id_like_or_title.as_str()),
+        Subcommand::EnsureLinks { id_like } => command::ensure_links(app, id_like),
+        Subcommand::Link { id_like_or_title } => command::link(id_like_or_title.as_str()),
+        Subcommand::List { obsoleted } => command::list(app, obsoleted),
+        Subcommand::ListTitle { obsoleted } => command::list_title(app, obsoleted),
+        Subcommand::New { title } => command::new(app, title.as_deref()),
+        Subcommand::Search { obsoleted, query } => command::search(app, query, obsoleted),
+        Subcommand::Server => command::server(app).await,
+        Subcommand::Title { id_like } => command::title(app, id_like.as_str()),
     }
-    Ok(())
 }
