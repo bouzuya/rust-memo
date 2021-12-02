@@ -3,7 +3,6 @@ mod command;
 mod helpers;
 mod template;
 mod url_helpers;
-mod use_case;
 
 use std::env;
 

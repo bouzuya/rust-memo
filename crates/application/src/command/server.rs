@@ -2,9 +2,11 @@ mod handler;
 
 use self::handler::{index, page, pages, title, title_pages, titles};
 use actix_web::web;
-use use_case::{HasListTitlesUseCase, HasPageRepository};
+use use_case::{HasListPagesUseCase, HasListTitlesUseCase, HasPageRepository};
 
-pub async fn server<T: HasListTitlesUseCase + HasPageRepository + Send + Sync + 'static>(
+pub async fn server<
+    T: HasListTitlesUseCase + HasListPagesUseCase + HasPageRepository + Send + Sync + 'static,
+>(
     app: T,
 ) -> anyhow::Result<()> {
     let data = web::Data::new(app);

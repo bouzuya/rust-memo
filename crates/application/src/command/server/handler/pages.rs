@@ -4,21 +4,24 @@ use crate::url_helpers::pages_url;
 use actix_web::{web::Data, HttpResponse};
 use askama::Template;
 use entity::PagePath;
-use use_case::HasPageRepository;
+use use_case::{HasListPagesUseCase, ListPagesUseCase};
 
-pub async fn pages<T: HasPageRepository>(
+pub async fn pages<T: HasListPagesUseCase>(
     req: actix_web::HttpRequest,
     data: Data<T>,
 ) -> actix_web::Result<HttpResponse> {
     let app = data.get_ref();
     let all = is_all(&req);
-    let pages = crate::use_case::list::list(app, all).map_err(|_| actix_web::Error::from(()))?;
+    let pages = app
+        .list_pages_use_case()
+        .list_pages(all)
+        .map_err(|_| actix_web::Error::from(()))?;
     let pages = pages
         .into_iter()
         .map(|page| PageItemTemplate {
-            id: page.id.to_string(),
-            obsoleted: page.obsoleted,
-            url: PagePath::from(page.id).to_string(),
+            id: page.0.to_string(),
+            obsoleted: page.1,
+            url: PagePath::from(page.0).to_string(),
         })
         .collect::<Vec<PageItemTemplate>>();
     let template = PagesTemplate {
