@@ -1,4 +1,4 @@
-use crate::handler_helpers::is_all;
+use super::helpers::is_all;
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitleTemplate};
 use actix_web::{web, HttpResponse};
 use askama::Template;

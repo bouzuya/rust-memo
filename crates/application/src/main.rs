@@ -1,6 +1,5 @@
 mod app;
 mod command;
-mod handler_helpers;
 mod helpers;
 mod template;
 mod url_helpers;

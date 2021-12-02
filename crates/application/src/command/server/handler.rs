@@ -1,3 +1,4 @@
+pub mod helpers;
 mod index;
 mod page;
 mod pages;

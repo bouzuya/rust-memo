@@ -1,4 +1,4 @@
-use crate::handler_helpers::is_all;
+use super::helpers::is_all;
 use crate::template::{PageItemTemplate, PagesTemplate};
 use crate::url_helpers::pages_url;
 use actix_web::{web::Data, HttpResponse};

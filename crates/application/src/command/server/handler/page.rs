@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::handler_helpers::is_all;
+use super::helpers::is_all;
 use crate::template::{PageItemTemplate, PageTemplate, PageWithTitle};
 use actix_web::{web, HttpResponse, ResponseError};
 use askama::Template;
