@@ -14,7 +14,8 @@ pub struct PageGraph {
 impl PageGraph {
     pub fn add_page(&mut self, page: Page) {
         let page_id = *page.id();
-        let page_content = page.content();
+        let mut page_content = page.content().clone();
+        page_content.ensure_links();
         for obsoleted in page_content.obsoletes() {
             self.obsolete_links
                 .entry(page_id)
