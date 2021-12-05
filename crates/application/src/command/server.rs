@@ -9,6 +9,9 @@ pub async fn server<
 >(
     app: T,
 ) -> anyhow::Result<()> {
+    // TODO: run file watcher
+
+    // run http server
     let data = web::Data::new(app);
     let mut listenfd = listenfd::ListenFd::from_env();
     let mut server = actix_web::HttpServer::new(move || {
