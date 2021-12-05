@@ -23,6 +23,7 @@ impl Page {
         &self.content
     }
 
+    // TODO: pub fn broken_links(&self) -> Vec<PageTitle>
     // TODO: pub fn obsoleted(&self) -> bool
     // TODO: pub fn obsolete_links(&self) -> BTreeSet<PageId>
     // TODO: pub fn rev_obsolete_links(&self) -> BTreeSet<PageId>
