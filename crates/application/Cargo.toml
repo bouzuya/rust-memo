@@ -1,6 +1,6 @@
 [package]
 name = "rust-memo"
-version = "0.15.1"
+version = "0.15.2"
 authors = ["bouzuya <m@bouzuya.net>"]
 edition = "2018"
 
