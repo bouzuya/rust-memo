@@ -21,6 +21,7 @@ structopt = "0.3.25"
 thiserror = "1.0.30"
 url = "2.1.1"
 use_case = { path = "../use_case" }
+watchexec = "1.17.1"
 
 [dev-dependencies]
 tempfile = "3.2.0"
