@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+
 use entity::PageTitle;
 
 use crate::{HasPageRepository, PageRepository};
@@ -13,11 +15,22 @@ pub trait ListTitlesUseCase: HasPageRepository {
                 .iter()
                 .any(|page_id| !page_graph.is_obsoleted(page_id));
             if all || !obsoleted {
-                title_items.push((page_title, obsoleted));
+                let page_id = page_graph
+                    .titled(&page_title)
+                    .into_iter()
+                    .rev()
+                    .next()
+                    .unwrap(); // TODO: unwrap
+                title_items.push((page_title, obsoleted, page_id));
             }
         }
+        // TODO: clone
+        title_items.sort_by_key(|(t, o, i)| (Reverse(i.clone()), t.clone(), o.clone()));
 
-        Ok(title_items)
+        Ok(title_items
+            .into_iter()
+            .map(|(t, o, _)| (t, o))
+            .collect::<Vec<_>>())
     }
 }
 
@@ -60,100 +73,101 @@ mod tests {
 
     #[test]
     fn test() -> anyhow::Result<()> {
-        {
-            let mut page_repository = MockPageRepository::new();
-            page_repository
-                .expect_load_page_graph()
-                .returning(|| Ok(PageGraph::default()));
-            let app = TestApp { page_repository };
-            let titles = app.list_titles_use_case().list_titles(true)?;
-            assert!(titles.is_empty());
-        }
+        let mut page_repository = MockPageRepository::new();
+        page_repository
+            .expect_load_page_graph()
+            .returning(|| Ok(PageGraph::default()));
+        let app = TestApp { page_repository };
+        let titles = app.list_titles_use_case().list_titles(true)?;
+        assert!(titles.is_empty());
+        Ok(())
+    }
 
-        {
-            let mut page_repository = MockPageRepository::new();
-            page_repository.expect_load_page_graph().returning(|| {
-                let mut page_graph = PageGraph::default();
-                page_graph.add_page({
-                    let page_id = PageId::from_str("20210203T040506Z")?;
-                    let page_content = PageContent::from(
-                        vec![
-                            "# title1",
-                            "## Obsoletes",
-                            "",
-                            "- [20210203T040506Z](/pages/20210203T040506Z)",
-                            "",
-                        ]
-                        .join("\n"),
-                    );
-                    Page::new(page_id, page_content)
-                });
-                page_graph.add_page({
-                    let page_id = PageId::from_str("20210203T040507Z")?;
-                    let page_content = PageContent::from(
-                        vec![
-                            "# title2",
-                            "## Obsoletes",
-                            "",
-                            "- [20210203T040506Z](/pages/20210203T040506Z)",
-                            "",
-                        ]
-                        .join("\n"),
-                    );
-                    Page::new(page_id, page_content)
-                });
-                Ok(page_graph)
+    #[test]
+    fn test2() -> anyhow::Result<()> {
+        let mut page_repository = MockPageRepository::new();
+        page_repository.expect_load_page_graph().returning(|| {
+            let mut page_graph = PageGraph::default();
+            page_graph.add_page({
+                let page_id = PageId::from_str("20210203T040506Z")?;
+                let page_content = PageContent::from(
+                    vec![
+                        "# title1",
+                        "## Obsoletes",
+                        "",
+                        "- [20210203T040506Z](/pages/20210203T040506Z)",
+                        "",
+                    ]
+                    .join("\n"),
+                );
+                Page::new(page_id, page_content)
             });
-            let app = TestApp { page_repository };
-            let titles = app.list_titles_use_case().list_titles(false)?;
-            assert_eq!(titles, vec![(PageTitle::from("title2".to_string()), false)]);
-        }
-
-        {
-            let mut page_repository = MockPageRepository::new();
-            page_repository.expect_load_page_graph().returning(|| {
-                let mut page_graph = PageGraph::default();
-                page_graph.add_page({
-                    let page_id = PageId::from_str("20210203T040506Z")?;
-                    let page_content = PageContent::from(
-                        vec![
-                            "# title1",
-                            "## Obsoletes",
-                            "",
-                            "- [20210203T040506Z](/pages/20210203T040506Z)",
-                            "",
-                        ]
-                        .join("\n"),
-                    );
-                    Page::new(page_id, page_content)
-                });
-                page_graph.add_page({
-                    let page_id = PageId::from_str("20210203T040507Z")?;
-                    let page_content = PageContent::from(
-                        vec![
-                            "# title2",
-                            "## Obsoletes",
-                            "",
-                            "- [20210203T040506Z](/pages/20210203T040506Z)",
-                            "",
-                        ]
-                        .join("\n"),
-                    );
-                    Page::new(page_id, page_content)
-                });
-                Ok(page_graph)
+            page_graph.add_page({
+                let page_id = PageId::from_str("20210203T040507Z")?;
+                let page_content = PageContent::from(
+                    vec![
+                        "# title2",
+                        "## Obsoletes",
+                        "",
+                        "- [20210203T040506Z](/pages/20210203T040506Z)",
+                        "",
+                    ]
+                    .join("\n"),
+                );
+                Page::new(page_id, page_content)
             });
-            let app = TestApp { page_repository };
-            let titles = app.list_titles_use_case().list_titles(true)?;
-            assert_eq!(
-                titles,
-                vec![
-                    (PageTitle::from("title1".to_string()), true),
-                    (PageTitle::from("title2".to_string()), false)
-                ]
-            );
-        }
+            Ok(page_graph)
+        });
+        let app = TestApp { page_repository };
+        let titles = app.list_titles_use_case().list_titles(false)?;
+        assert_eq!(titles, vec![(PageTitle::from("title2".to_string()), false)]);
+        Ok(())
+    }
 
+    #[test]
+    fn test3() -> anyhow::Result<()> {
+        let mut page_repository = MockPageRepository::new();
+        page_repository.expect_load_page_graph().returning(|| {
+            let mut page_graph = PageGraph::default();
+            page_graph.add_page({
+                let page_id = PageId::from_str("20210203T040506Z")?;
+                let page_content = PageContent::from(
+                    vec![
+                        "# title1",
+                        "## Obsoletes",
+                        "",
+                        "- [20210203T040506Z](/pages/20210203T040506Z)",
+                        "",
+                    ]
+                    .join("\n"),
+                );
+                Page::new(page_id, page_content)
+            });
+            page_graph.add_page({
+                let page_id = PageId::from_str("20210203T040507Z")?;
+                let page_content = PageContent::from(
+                    vec![
+                        "# title2",
+                        "## Obsoletes",
+                        "",
+                        "- [20210203T040506Z](/pages/20210203T040506Z)",
+                        "",
+                    ]
+                    .join("\n"),
+                );
+                Page::new(page_id, page_content)
+            });
+            Ok(page_graph)
+        });
+        let app = TestApp { page_repository };
+        let titles = app.list_titles_use_case().list_titles(true)?;
+        assert_eq!(
+            titles,
+            vec![
+                (PageTitle::from("title2".to_string()), false),
+                (PageTitle::from("title1".to_string()), true),
+            ]
+        );
         Ok(())
     }
 }
