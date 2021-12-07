@@ -7,6 +7,7 @@ pub struct PageGraph {
     obsolete_links: BTreeMap<PageId, BTreeSet<PageId>>,
     rev_obsolete_links: BTreeMap<PageId, BTreeSet<PageId>>,
     titles: BTreeMap<PageId, PageTitle>,
+    title_links: BTreeMap<PageId, BTreeSet<PageTitle>>,
     rev_titles: BTreeMap<PageTitle, BTreeSet<PageId>>,
     rev_title_links: BTreeMap<PageTitle, BTreeSet<PageId>>,
 }
@@ -34,11 +35,45 @@ impl PageGraph {
             .insert(page_id);
         let title_links = page_content.title_links();
         for linked_page_title in title_links {
+            self.title_links
+                .entry(page_id)
+                .or_insert_with(BTreeSet::new)
+                .insert(linked_page_title.clone());
             self.rev_title_links
                 .entry(linked_page_title)
                 .or_insert_with(BTreeSet::new)
                 .insert(page_id);
         }
+    }
+
+    pub fn remove_page(&mut self, page_id: &PageId) {
+        let page_title = self.titles.get(page_id).unwrap(); // TODO: unwrap
+
+        self.rev_titles
+            .get_mut(page_title)
+            .unwrap()
+            .remove(&page_id); // TODO: unwrap
+
+        let title_links = self.title_links.get(&page_id).unwrap(); // TODO: unwrap
+
+        for title_link in title_links {
+            self.rev_title_links
+                .get_mut(title_link)
+                .unwrap()
+                .remove(&page_id); // TODO: unwrap
+        }
+
+        let obsolete_links = self.obsolete_links.get(&page_id).unwrap(); // TODO: unwrap
+        for obsolete_link in obsolete_links {
+            self.rev_obsolete_links
+                .get_mut(obsolete_link)
+                .unwrap()
+                .remove(&page_id); // TODo: unwrap
+        }
+
+        self.obsolete_links.remove(&page_id);
+        self.titles.remove(&page_id);
+        self.title_links.remove(&page_id);
     }
 
     pub fn is_obsoleted(&self, page_id: &PageId) -> bool {
