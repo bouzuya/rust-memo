@@ -49,31 +49,29 @@ impl PageGraph {
     pub fn remove_page(&mut self, page_id: &PageId) {
         let page_title = self.titles.get(page_id).unwrap(); // TODO: unwrap
 
-        self.rev_titles
-            .get_mut(page_title)
-            .unwrap()
-            .remove(&page_id); // TODO: unwrap
+        self.rev_titles.get_mut(page_title).unwrap().remove(page_id); // TODO: unwrap
 
-        let title_links = self.title_links.get(&page_id).unwrap(); // TODO: unwrap
-
-        for title_link in title_links {
-            self.rev_title_links
-                .get_mut(title_link)
-                .unwrap()
-                .remove(&page_id); // TODO: unwrap
+        if let Some(title_links) = self.title_links.get(page_id) {
+            for title_link in title_links {
+                self.rev_title_links
+                    .get_mut(title_link)
+                    .unwrap()
+                    .remove(page_id); // TODO: unwrap
+            }
         }
 
-        let obsolete_links = self.obsolete_links.get(&page_id).unwrap(); // TODO: unwrap
-        for obsolete_link in obsolete_links {
-            self.rev_obsolete_links
-                .get_mut(obsolete_link)
-                .unwrap()
-                .remove(&page_id); // TODo: unwrap
+        if let Some(obsolete_links) = self.obsolete_links.get(page_id) {
+            for obsolete_link in obsolete_links {
+                self.rev_obsolete_links
+                    .get_mut(obsolete_link)
+                    .unwrap()
+                    .remove(page_id); // TODo: unwrap
+            }
         }
 
-        self.obsolete_links.remove(&page_id);
-        self.titles.remove(&page_id);
-        self.title_links.remove(&page_id);
+        self.obsolete_links.remove(page_id);
+        self.titles.remove(page_id);
+        self.title_links.remove(page_id);
     }
 
     pub fn is_obsoleted(&self, page_id: &PageId) -> bool {
@@ -158,8 +156,14 @@ mod tests {
 
         let page_graph = PageGraph::default();
         assert!(!page_graph.is_obsoleted(&page_id1));
+        assert!(!page_graph.is_obsoleted(&page_id2));
+        assert!(!page_graph.is_obsoleted(&page_id3));
         assert!(page_graph.obsoleted_by(&page_id1).is_empty());
+        assert!(page_graph.obsoleted_by(&page_id2).is_empty());
+        assert!(page_graph.obsoleted_by(&page_id3).is_empty());
         assert!(page_graph.obsoletes(&page_id1).is_empty());
+        assert!(page_graph.obsoletes(&page_id2).is_empty());
+        assert!(page_graph.obsoletes(&page_id3).is_empty());
 
         let mut page_graph = PageGraph::default();
         page_graph.add_page(Page::new(page_id2, page_content2));
@@ -184,6 +188,19 @@ mod tests {
         );
         assert!(page_graph.obsoleted_by(&page_id2).is_empty());
         assert!(page_graph.obsoleted_by(&page_id3).is_empty());
+
+        page_graph.remove_page(&page_id2);
+        page_graph.remove_page(&page_id3);
+        assert!(!page_graph.is_obsoleted(&page_id1));
+        assert!(!page_graph.is_obsoleted(&page_id2));
+        assert!(!page_graph.is_obsoleted(&page_id3));
+        assert!(page_graph.obsoleted_by(&page_id1).is_empty());
+        assert!(page_graph.obsoleted_by(&page_id2).is_empty());
+        assert!(page_graph.obsoleted_by(&page_id3).is_empty());
+        assert!(page_graph.obsoletes(&page_id1).is_empty());
+        assert!(page_graph.obsoletes(&page_id2).is_empty());
+        assert!(page_graph.obsoletes(&page_id3).is_empty());
+
         Ok(())
     }
 
@@ -200,7 +217,10 @@ mod tests {
 
         let page_graph = PageGraph::default();
         assert!(page_graph.title(&page_id1).is_none());
+        assert!(page_graph.title(&page_id2).is_none());
+        assert!(page_graph.title(&page_id3).is_none());
         assert!(page_graph.titled(&page_title1).is_empty());
+        assert!(page_graph.titled(&page_title3).is_empty());
 
         let mut page_graph = PageGraph::default();
         page_graph.add_page(Page::new(page_id1, page_content1));
@@ -218,6 +238,15 @@ mod tests {
             page_graph.titled(&page_title3),
             vec![page_id3].into_iter().collect::<BTreeSet<_>>()
         );
+
+        page_graph.remove_page(&page_id1);
+        page_graph.remove_page(&page_id2);
+        page_graph.remove_page(&page_id3);
+        assert!(page_graph.title(&page_id1).is_none());
+        assert!(page_graph.title(&page_id2).is_none());
+        assert!(page_graph.title(&page_id3).is_none());
+        assert!(page_graph.titled(&page_title1).is_empty());
+        assert!(page_graph.titled(&page_title3).is_empty());
         Ok(())
     }
 
@@ -245,6 +274,11 @@ mod tests {
                 .into_iter()
                 .collect::<BTreeSet<_>>()
         );
+
+        page_graph.remove_page(&page_id1);
+        page_graph.remove_page(&page_id2);
+        page_graph.remove_page(&page_id3);
+        assert!(page_graph.titles().is_empty());
         Ok(())
     }
 
@@ -261,6 +295,7 @@ mod tests {
 
         let page_graph = PageGraph::default();
         assert!(page_graph.find_ids_link_to(&page_title1).is_empty());
+        assert!(page_graph.find_ids_link_to(&page_title3).is_empty());
 
         let mut page_graph = PageGraph::default();
         page_graph.add_page(Page::new(page_id1, page_content1));
@@ -274,6 +309,12 @@ mod tests {
             page_graph.find_ids_link_to(&page_title3),
             vec![page_id1].into_iter().collect::<BTreeSet<_>>()
         );
+
+        page_graph.remove_page(&page_id1);
+        page_graph.remove_page(&page_id2);
+        page_graph.remove_page(&page_id3);
+        assert!(page_graph.find_ids_link_to(&page_title1).is_empty());
+        assert!(page_graph.find_ids_link_to(&page_title3).is_empty());
         Ok(())
     }
 }
