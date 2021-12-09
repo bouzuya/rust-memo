@@ -2,14 +2,28 @@ mod handler;
 
 use self::handler::{index, page, pages, title, title_pages, titles};
 use actix_web::web;
+use anyhow::Context as _;
 use use_case::{HasListPagesUseCase, HasListTitlesUseCase, HasPageRepository};
+use watchexec::{
+    config::{Config, ConfigBuilder},
+    error::Result,
+    pathop::PathOp,
+    run::{watch, ExecHandler, Handler},
+};
 
 pub async fn server<
     T: HasListTitlesUseCase + HasListPagesUseCase + HasPageRepository + Send + Sync + 'static,
 >(
     app: T,
 ) -> anyhow::Result<()> {
-    // TODO: run file watcher
+    // run file watcher
+    let config = ConfigBuilder::default()
+        .paths(vec![".".into()])
+        .cmd(vec![":".into()])
+        .build()
+        .context("fail")?;
+    let handler = MyHandler(ExecHandler::new(config)?);
+    watch(&handler).context("fail")?;
 
     // run http server
     let data = web::Data::new(app);
@@ -34,4 +48,28 @@ pub async fn server<
         println!("- {}://{}", scheme, addr);
     }
     Ok(server.run().await?)
+}
+
+struct MyHandler(ExecHandler);
+
+impl Handler for MyHandler {
+    fn on_manual(&self) -> Result<bool> {
+        self.0.on_manual()
+    }
+
+    fn on_update(&self, ops: &[PathOp]) -> Result<bool> {
+        // TODO: CREATE => add_page
+        // TODO: WRITE => remove_page -> add_page
+        // TODO: CHMOD => do nothing
+        // TODO: REMOVE => remove_page
+        // TODO: RENAME => remove_page -> add_page
+        // TODO: CLOSE_WRITE ...
+        // TODO: RESCAN      ...
+        // println!("on update {:?}", ops);
+        self.0.on_update(ops)
+    }
+
+    fn args(&self) -> Config {
+        self.0.args()
+    }
 }
