@@ -1,8 +1,11 @@
 mod handler;
 
+use std::thread;
+
 use self::handler::{index, page, pages, title, title_pages, titles};
 use actix_web::web;
 use anyhow::Context as _;
+use entity::PageId;
 use use_case::{HasListPagesUseCase, HasListTitlesUseCase, HasPageRepository};
 use watchexec::{
     config::{Config, ConfigBuilder},
@@ -17,13 +20,16 @@ pub async fn server<
     app: T,
 ) -> anyhow::Result<()> {
     // run file watcher
-    let config = ConfigBuilder::default()
-        .paths(vec![".".into()])
-        .cmd(vec![":".into()])
-        .build()
-        .context("fail")?;
-    let handler = MyHandler(ExecHandler::new(config)?);
-    watch(&handler).context("fail")?;
+    thread::spawn(|| -> anyhow::Result<()> {
+        let config = ConfigBuilder::default()
+            .paths(vec![".".into()])
+            .cmd(vec![":".into()])
+            .build()
+            .context("fail")?;
+        let handler = MyHandler(ExecHandler::new(config)?);
+        watch(&handler).context("fail")?;
+        Ok(())
+    });
 
     // run http server
     let data = web::Data::new(app);
@@ -58,6 +64,23 @@ impl Handler for MyHandler {
     }
 
     fn on_update(&self, ops: &[PathOp]) -> Result<bool> {
+        for op in ops {
+            match op.op {
+                None => continue,
+                Some(o) => {
+                    let page_id = if let Some(s) = op.path.as_os_str().to_str() {
+                        match PageId::from_like_str(s) {
+                            Err(_) => continue,
+                            Ok(page_id) => page_id,
+                        }
+                    } else {
+                        continue;
+                    };
+
+                    println!("on update {:?} {:?}", o, page_id);
+                }
+            }
+        }
         // TODO: CREATE => add_page
         // TODO: WRITE => remove_page -> add_page
         // TODO: CHMOD => do nothing
@@ -65,7 +88,7 @@ impl Handler for MyHandler {
         // TODO: RENAME => remove_page -> add_page
         // TODO: CLOSE_WRITE ...
         // TODO: RESCAN      ...
-        // println!("on update {:?}", ops);
+        println!("on update {:?}", ops);
         self.0.on_update(ops)
     }
 
