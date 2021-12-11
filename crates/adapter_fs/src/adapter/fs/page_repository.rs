@@ -1,6 +1,11 @@
-use std::{fs, path::PathBuf, str::FromStr};
+use std::{
+    fs,
+    path::PathBuf,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
 
-use entity::{PageContent, PageId};
+use entity::{Page, PageContent, PageGraph, PageId};
 use use_case::PageRepository;
 
 // TODO: returns PathBuf
@@ -10,11 +15,15 @@ pub fn to_file_name(page_id: &PageId) -> String {
 
 pub struct FsPageRepository {
     data_dir: PathBuf,
+    page_graph: Arc<Mutex<PageGraph>>,
 }
 
 impl FsPageRepository {
     pub fn new(data_dir: PathBuf) -> Self {
-        Self { data_dir }
+        Self {
+            data_dir,
+            page_graph: Arc::new(Mutex::new(PageGraph::default())),
+        }
     }
 }
 
@@ -54,6 +63,11 @@ impl PageRepository for FsPageRepository {
     }
 
     fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()> {
+        // TODO: graph.remove_page(page) if exists
+        let mut page_graph = self.page_graph.lock().unwrap(); // TODO
+        page_graph.add_page(Page::new(page_id.to_owned(), content.clone()));
+        // TODO: fix file watcher
+
         let file_name = to_file_name(page_id);
         let file_name = self.data_dir.join(file_name.as_str());
         Ok(fs::write(file_name, String::from(content))?)
