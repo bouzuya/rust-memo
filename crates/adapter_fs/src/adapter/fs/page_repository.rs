@@ -28,13 +28,14 @@ impl FsPageRepository {
 }
 
 impl PageRepository for FsPageRepository {
-    fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>> {
+    fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>> {
         // TODO: to_file_name should return PathBuf
         let file_name = to_file_name(page_id);
         let file_name = self.data_dir.join(file_name.as_str());
         Ok(if file_name.exists() {
             fs::read_to_string(file_name)
                 .map(PageContent::from)
+                .map(|page_content| Page::new(page_id.clone(), page_content))
                 .map(Some)?
         } else {
             None
@@ -83,19 +84,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn find_content_test() -> anyhow::Result<()> {
+    fn find_by_id_test() -> anyhow::Result<()> {
         let temp_dir = tempdir()?;
         let data_dir = temp_dir.path().to_path_buf();
         let repository = FsPageRepository::new(data_dir.clone());
 
         let page_id = PageId::from_str("20210203T040506Z")?;
-        assert!(repository.find_content(&page_id)?.is_none());
+        assert!(repository.find_by_id(&page_id)?.is_none());
 
         let file_path = data_dir.join("20210203T040506Z.md");
         fs::write(file_path.as_path(), "content")?;
         assert_eq!(
-            repository.find_content(&page_id)?,
-            Some(PageContent::from("content".to_string()))
+            repository.find_by_id(&page_id)?,
+            Some(Page::new(page_id, PageContent::from("content".to_string())))
         );
 
         Ok(())
@@ -127,10 +128,13 @@ mod tests {
         let repository = FsPageRepository::new(data_dir);
 
         let page_id = PageId::from_str("20210203T040506Z")?;
-        assert!(repository.find_content(&page_id)?.is_none());
+        assert!(repository.find_by_id(&page_id)?.is_none());
         let page_content = PageContent::from("content".to_string());
         repository.save_content(&page_id, page_content.clone())?;
-        assert_eq!(repository.find_content(&page_id)?, Some(page_content));
+        assert_eq!(
+            repository.find_by_id(&page_id)?,
+            Some(Page::new(page_id, page_content))
+        );
 
         Ok(())
     }

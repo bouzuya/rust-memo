@@ -26,7 +26,7 @@ pub async fn page<T: HasPageRepository>(
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::NotFound, "invalid page_id format"))?;
     let title = app
         .page_repository()
-        .find_content(&page_id)
+        .find_by_id(&page_id)
         .map_err(|_| MyError(format!("IO Error: {}", page_id)))?
         .map(|page_content| page_content.title())
         .ok_or_else(|| MyError(format!("page_id not found: {}", page_id)))?;
@@ -41,7 +41,7 @@ pub async fn page<T: HasPageRepository>(
         .map(|page_id| {
             let title = app
                 .page_repository()
-                .find_content(page_id)
+                .find_by_id(page_id)
                 .map_err(|_| MyError(format!("IO Error: {}", page_id)))?
                 .map(|page_content| page_content.title())
                 .ok_or_else(|| MyError(format!("page_id not found: {}", page_id)))?;
@@ -64,9 +64,10 @@ pub async fn page<T: HasPageRepository>(
         .collect::<Vec<PageItemTemplate>>();
     let md = app
         .page_repository()
-        .find_content(&page_id)
+        .find_by_id(&page_id)
         .map_err(|_| MyError(format!("IO error: {}", page_id)))?
-        .map(|mut page_content| {
+        .map(|page| {
+            let mut page_content = page.content().clone();
             page_content.ensure_links();
             page_content
         })

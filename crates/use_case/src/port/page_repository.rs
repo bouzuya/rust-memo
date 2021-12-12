@@ -11,11 +11,11 @@ pub trait PageRepository {
     ) -> anyhow::Result<Vec<(PageId, LineNumber, ColumnNumber)>> {
         let mut res = vec![];
         for page_id in self.find_ids()? {
-            let page_content = self.find_content(&page_id)?;
-            if let Some(page_content) = page_content {
+            let page = self.find_by_id(&page_id)?;
+            if let Some(page) = page {
                 res.extend(
                     query
-                        .matches(String::from(page_content).as_str())
+                        .matches(String::from(page.content().clone()).as_str()) // TODO: clone
                         .into_iter()
                         .map(|(l, c)| (page_id, l, c)),
                 );
@@ -24,15 +24,14 @@ pub trait PageRepository {
         Ok(res)
     }
 
-    fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>>;
+    fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>>;
 
     fn find_ids(&self) -> anyhow::Result<Vec<PageId>>;
 
     fn load_page_graph(&self) -> anyhow::Result<PageGraph> {
         let mut page_graph = PageGraph::default();
         for page_id in self.find_ids()? {
-            if let Some(page_content) = self.find_content(&page_id)? {
-                let page = Page::new(page_id, page_content);
+            if let Some(page) = self.find_by_id(&page_id)? {
                 page_graph.add_page(page);
             }
         }
@@ -58,7 +57,7 @@ mod tests {
     fn load_page_graph_test() -> anyhow::Result<()> {
         struct TestRepository {}
         impl PageRepository for TestRepository {
-            fn find_content(&self, page_id: &PageId) -> anyhow::Result<Option<PageContent>> {
+            fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>> {
                 let page_id1 = PageId::from_str("20210203T040506Z")?;
                 let page_id2 = PageId::from_str("20210203T040507Z")?;
                 let page_content1 = PageContent::from("# title1".to_string());
@@ -73,9 +72,9 @@ mod tests {
                     .join("\n"),
                 );
                 if page_id == &page_id1 {
-                    Ok(Some(page_content1))
+                    Ok(Some(Page::new(page_id1, page_content1)))
                 } else if page_id == &page_id2 {
-                    Ok(Some(page_content2))
+                    Ok(Some(Page::new(page_id2, page_content2)))
                 } else {
                     unreachable!()
                 }

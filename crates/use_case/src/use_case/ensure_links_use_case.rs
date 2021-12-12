@@ -6,12 +6,14 @@ use crate::{HasPageRepository, PageRepository};
 pub trait EnsureLinksUseCase: HasPageRepository {
     fn ensure_links(&self, page_id: Option<&PageId>) -> anyhow::Result<()> {
         let f = |page_id: &PageId| -> anyhow::Result<()> {
-            let mut page_content = self
+            let page = self
                 .page_repository()
-                .find_content(page_id)?
+                .find_by_id(page_id)?
                 .with_context(|| anyhow!("file not found: {}", page_id))?;
+            let mut page_content = page.content().clone(); // TODO: add Page::ensure_links
             page_content.ensure_links();
-            self.page_repository().save_content(page_id, page_content)?;
+            self.page_repository()
+                .save_content(page.id(), page_content)?;
             Ok(())
         };
         match page_id {
@@ -37,7 +39,7 @@ pub trait HasEnsureLinksUseCase {
 mod tests {
     use std::str::FromStr;
 
-    use entity::PageContent;
+    use entity::{Page, PageContent};
     use mockall::predicate;
 
     use super::*;
@@ -72,11 +74,12 @@ mod tests {
             .expect_find_ids()
             .returning(move || Ok(vec![page_id1, page_id2]));
         page_repository
-            .expect_find_content()
+            .expect_find_by_id()
             .with(predicate::eq(page_id1))
-            .returning(|_| {
-                Ok(Some(PageContent::from(
-                    vec!["# title", "", "[link1]", ""].join("\n"),
+            .returning(move |_| {
+                Ok(Some(Page::new(
+                    page_id1,
+                    PageContent::from(vec!["# title", "", "[link1]", ""].join("\n")),
                 )))
             });
         page_repository
@@ -89,11 +92,12 @@ mod tests {
             )
             .returning(|_, _| Ok(()));
         page_repository
-            .expect_find_content()
+            .expect_find_by_id()
             .with(predicate::eq(page_id2))
-            .returning(|_| {
-                Ok(Some(PageContent::from(
-                    vec!["# title", "", "[link2]", ""].join("\n"),
+            .returning(move |_| {
+                Ok(Some(Page::new(
+                    page_id2,
+                    PageContent::from(vec!["# title", "", "[link2]", ""].join("\n")),
                 )))
             });
         page_repository
@@ -115,11 +119,14 @@ mod tests {
         let mut page_repository = MockPageRepository::new();
         let page_id = PageId::from_str("20210203T040506Z")?;
         page_repository
-            .expect_find_content()
+            .expect_find_by_id()
             .with(predicate::eq(page_id))
-            .returning(|_| {
-                Ok(Some(PageContent::from(
-                    vec!["# title", "", "content1", "", "[link1]", ""].join("\n"),
+            .returning(move |_| {
+                Ok(Some(Page::new(
+                    page_id,
+                    PageContent::from(
+                        vec!["# title", "", "content1", "", "[link1]", ""].join("\n"),
+                    ),
                 )))
             });
         page_repository

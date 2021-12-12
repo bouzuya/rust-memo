@@ -23,11 +23,12 @@ pub trait EditPageUseCase: HasPageRepository {
                     .ok_or_else(|| anyhow!("title not found"))?
             }
         };
-        let mut page_content = self
+        let page = self
             .page_repository()
-            .find_content(&page_id)?
+            .find_by_id(&page_id)?
             .with_context(|| anyhow!("file not found: {}", page_id))?;
         let is_obsoleted = page_graph.is_obsoleted(&page_id);
+        let mut page_content = page.content().clone();
         page_content.replace_obsoletes(page_id);
         let new_page_id = PageId::new().context("This application is out of date.")?;
         self.page_repository()
@@ -48,7 +49,7 @@ pub trait HasEditPageUseCase {
 mod tests {
     use std::str::FromStr;
 
-    use entity::{PageContent, PageGraph};
+    use entity::{Page, PageContent, PageGraph};
     use mockall::predicate;
 
     use super::*;
@@ -82,9 +83,14 @@ mod tests {
             .expect_load_page_graph()
             .returning(|| Ok(PageGraph::default()));
         page_repository
-            .expect_find_content()
+            .expect_find_by_id()
             .with(predicate::eq(page_id))
-            .returning(|_| Ok(Some(PageContent::from("# title\n\ncontent1".to_string()))));
+            .returning(move |_| {
+                Ok(Some(Page::new(
+                    page_id,
+                    PageContent::from("# title\n\ncontent1".to_string()),
+                )))
+            });
         page_repository
             .expect_save_content()
             // TODO: test new_page_id & content
