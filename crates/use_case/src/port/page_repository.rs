@@ -1,9 +1,11 @@
-use entity::{ColumnNumber, LineNumber, Page, PageContent, PageGraph, PageId, Query};
+use entity::{ColumnNumber, LineNumber, Page, PageGraph, PageId, Query};
 #[cfg(test)]
 use mockall::automock;
 
 #[cfg_attr(test, automock)]
 pub trait PageRepository {
+    fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>>;
+
     // TODO: add tests
     fn find_by_query(
         &self,
@@ -24,8 +26,6 @@ pub trait PageRepository {
         Ok(res)
     }
 
-    fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>>;
-
     fn find_ids(&self) -> anyhow::Result<Vec<PageId>>;
 
     fn load_page_graph(&self) -> anyhow::Result<PageGraph> {
@@ -38,7 +38,7 @@ pub trait PageRepository {
         Ok(page_graph)
     }
 
-    fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()>;
+    fn save(&self, page: Page) -> anyhow::Result<()>;
 }
 
 pub trait HasPageRepository {
@@ -50,6 +50,8 @@ pub trait HasPageRepository {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
+
+    use entity::PageContent;
 
     use super::*;
 
@@ -86,7 +88,7 @@ mod tests {
                 Ok(vec![page_id1, page_id2])
             }
 
-            fn save_content(&self, _: &PageId, _: PageContent) -> anyhow::Result<()> {
+            fn save(&self, _: Page) -> anyhow::Result<()> {
                 unreachable!()
             }
         }

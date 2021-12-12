@@ -1,6 +1,6 @@
 use crate::{PageContent, PageId, PageLink, PageLinkTo, PageTitle};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Page {
     id: PageId,
     content: PageContent,

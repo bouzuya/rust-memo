@@ -1,5 +1,5 @@
 use anyhow::Context;
-use entity::{PageContent, PageId, PageTitle};
+use entity::{Page, PageContent, PageId, PageTitle};
 
 use crate::{HasPageRepository, PageRepository};
 
@@ -10,7 +10,7 @@ pub trait NewPageUseCase: HasPageRepository {
         let already_exists = !page_graph.titled(&page_title).is_empty();
         let page_id = PageId::new().context("This application is out of date.")?;
         let content = PageContent::from(format!("# {}", page_title));
-        self.page_repository().save_content(&page_id, content)?;
+        self.page_repository().save(Page::new(page_id, content))?;
         Ok((page_id, already_exists))
     }
 }
@@ -57,9 +57,9 @@ mod tests {
             .expect_load_page_graph()
             .returning(|| Ok(PageGraph::default()));
         page_repository
-            .expect_save_content()
+            .expect_save()
             // TODO: test new_page_id & content
-            .returning(|_, _| Ok(()));
+            .returning(|_| Ok(()));
         let app = TestApp { page_repository };
         let page_title = PageTitle::from("title1".to_string());
         let (_new_page_id, already_exists) = app.new_page_use_case().new_page(page_title)?;

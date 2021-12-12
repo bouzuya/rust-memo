@@ -63,15 +63,15 @@ impl PageRepository for FsPageRepository {
         Ok(ids)
     }
 
-    fn save_content(&self, page_id: &PageId, content: PageContent) -> anyhow::Result<()> {
+    fn save(&self, page: Page) -> anyhow::Result<()> {
         // TODO: graph.remove_page(page) if exists
         let mut page_graph = self.page_graph.lock().unwrap(); // TODO
-        page_graph.add_page(Page::new(page_id.to_owned(), content.clone()));
+        page_graph.add_page(page.clone());
         // TODO: fix file watcher
 
-        let file_name = to_file_name(page_id);
+        let file_name = to_file_name(page.id());
         let file_name = self.data_dir.join(file_name.as_str());
-        Ok(fs::write(file_name, String::from(content))?)
+        Ok(fs::write(file_name, String::from(page.content().clone()))?)
     }
 }
 
@@ -110,11 +110,11 @@ mod tests {
 
         let page_content = PageContent::from("".to_string());
         let page_id1 = PageId::from_str("20210203T040506Z")?;
-        repository.save_content(&page_id1, page_content.clone())?;
+        repository.save(Page::new(page_id1, page_content.clone()))?;
         let page_id2 = PageId::from_str("20210203T040507Z")?;
-        repository.save_content(&page_id2, page_content.clone())?;
+        repository.save(Page::new(page_id2, page_content.clone()))?;
         let page_id3 = PageId::from_str("20210203T040508Z")?;
-        repository.save_content(&page_id3, page_content)?;
+        repository.save(Page::new(page_id3, page_content))?;
 
         assert_eq!(repository.find_ids()?, vec![page_id1, page_id2, page_id3],);
 
@@ -130,7 +130,7 @@ mod tests {
         let page_id = PageId::from_str("20210203T040506Z")?;
         assert!(repository.find_by_id(&page_id)?.is_none());
         let page_content = PageContent::from("content".to_string());
-        repository.save_content(&page_id, page_content.clone())?;
+        repository.save(Page::new(page_id, page_content.clone()))?;
         assert_eq!(
             repository.find_by_id(&page_id)?,
             Some(Page::new(page_id, page_content))

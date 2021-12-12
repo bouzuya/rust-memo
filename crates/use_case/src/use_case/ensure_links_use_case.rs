@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Context};
-use entity::PageId;
+use entity::{Page, PageId};
 
 use crate::{HasPageRepository, PageRepository};
 
@@ -13,7 +13,7 @@ pub trait EnsureLinksUseCase: HasPageRepository {
             let mut page_content = page.content().clone(); // TODO: add Page::ensure_links
             page_content.ensure_links();
             self.page_repository()
-                .save_content(page.id(), page_content)?;
+                .save(Page::new(page.id().clone(), page_content))?;
             Ok(())
         };
         match page_id {
@@ -83,14 +83,14 @@ mod tests {
                 )))
             });
         page_repository
-            .expect_save_content()
-            .with(
-                predicate::eq(page_id1),
-                predicate::eq(PageContent::from(
+            .expect_save()
+            .with(predicate::eq(Page::new(
+                page_id1,
+                PageContent::from(
                     vec!["# title", "", "[link1]", "", "[link1]: /titles/link1", ""].join("\n"),
-                )),
-            )
-            .returning(|_, _| Ok(()));
+                ),
+            )))
+            .returning(|_| Ok(()));
         page_repository
             .expect_find_by_id()
             .with(predicate::eq(page_id2))
@@ -101,14 +101,14 @@ mod tests {
                 )))
             });
         page_repository
-            .expect_save_content()
-            .with(
-                predicate::eq(page_id2),
-                predicate::eq(PageContent::from(
+            .expect_save()
+            .with(predicate::eq(Page::new(
+                page_id2,
+                PageContent::from(
                     vec!["# title", "", "[link2]", "", "[link2]: /titles/link2", ""].join("\n"),
-                )),
-            )
-            .returning(|_, _| Ok(()));
+                ),
+            )))
+            .returning(|_| Ok(()));
         let app = TestApp { page_repository };
         app.ensure_links_use_case().ensure_links(None)?;
         Ok(())
@@ -130,10 +130,10 @@ mod tests {
                 )))
             });
         page_repository
-            .expect_save_content()
-            .with(
-                predicate::eq(page_id),
-                predicate::eq(PageContent::from(
+            .expect_save()
+            .with(predicate::eq(Page::new(
+                page_id,
+                PageContent::from(
                     vec![
                         "# title",
                         "",
@@ -145,9 +145,9 @@ mod tests {
                         "",
                     ]
                     .join("\n"),
-                )),
-            )
-            .returning(|_, _| Ok(()));
+                ),
+            )))
+            .returning(|_| Ok(()));
         let app = TestApp { page_repository };
         app.ensure_links_use_case().ensure_links(Some(&page_id))?;
         Ok(())

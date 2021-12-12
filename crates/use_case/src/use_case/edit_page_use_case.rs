@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use anyhow::{anyhow, Context};
-use entity::{PageId, PageIdOrPageTitle};
+use entity::{Page, PageId, PageIdOrPageTitle};
 
 use crate::{HasPageRepository, PageRepository};
 
@@ -32,7 +32,7 @@ pub trait EditPageUseCase: HasPageRepository {
         page_content.replace_obsoletes(page_id);
         let new_page_id = PageId::new().context("This application is out of date.")?;
         self.page_repository()
-            .save_content(&new_page_id, page_content)?;
+            .save(Page::new(new_page_id, page_content))?;
         Ok((page_id, new_page_id, is_obsoleted))
     }
 }
@@ -92,9 +92,9 @@ mod tests {
                 )))
             });
         page_repository
-            .expect_save_content()
+            .expect_save()
             // TODO: test new_page_id & content
-            .returning(|_, _| Ok(()));
+            .returning(|_| Ok(()));
         let app = TestApp { page_repository };
         let _new_page_id = app
             .edit_page_use_case()
