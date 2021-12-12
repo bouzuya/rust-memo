@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use crate::template::{PageItemTemplate, TitleNotFoundTemplate, TitlePagesTemplate};
 use actix_web::{web, HttpResponse};
 use askama::Template;
@@ -6,9 +8,12 @@ use use_case::{HasPageRepository, PageRepository};
 
 pub async fn title_pages<T: HasPageRepository>(
     req: actix_web::HttpRequest,
-    data: web::Data<T>,
+    data: web::Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {
-    let app = data.get_ref();
+    let app = data
+        .get_ref()
+        .lock()
+        .map_err(|_| actix_web::Error::from(()))?;
     let params: (String,) = req.match_info().load()?;
     let page_graph = app
         .page_repository()

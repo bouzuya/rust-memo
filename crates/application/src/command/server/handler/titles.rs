@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use super::helpers::is_all;
 use crate::template::{TitlesItemTemplate, TitlesTemplate};
 use crate::url_helpers::titles_url;
@@ -8,9 +10,12 @@ use use_case::{HasListTitlesUseCase, ListTitlesUseCase};
 
 pub async fn titles<T: HasListTitlesUseCase>(
     req: actix_web::HttpRequest,
-    data: web::Data<T>,
+    data: web::Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {
-    let app = data.get_ref();
+    let app = data
+        .get_ref()
+        .lock()
+        .map_err(|_| actix_web::Error::from(()))?;
     let all = is_all(&req);
     let titles = app
         .list_titles_use_case()

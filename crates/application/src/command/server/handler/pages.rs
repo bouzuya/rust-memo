@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use super::helpers::is_all;
 use crate::template::{PageItemTemplate, PagesTemplate};
 use crate::url_helpers::pages_url;
@@ -8,9 +10,12 @@ use use_case::{HasListPagesUseCase, ListPagesUseCase};
 
 pub async fn pages<T: HasListPagesUseCase>(
     req: actix_web::HttpRequest,
-    data: Data<T>,
+    data: Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {
-    let app = data.get_ref();
+    let app = data
+        .get_ref()
+        .lock()
+        .map_err(|_| actix_web::Error::from(()))?;
     let all = is_all(&req);
     let pages = app
         .list_pages_use_case()
