@@ -28,6 +28,18 @@ impl FsPageRepository {
 }
 
 impl PageRepository for FsPageRepository {
+    fn destroy(&self, page_id: &PageId) -> anyhow::Result<bool> {
+        // TODO: to_file_name should return PathBuf
+        let file_name = to_file_name(page_id);
+        let file_name = self.data_dir.join(file_name.as_str());
+        Ok(if file_name.exists() {
+            fs::remove_file(file_name)?;
+            true
+        } else {
+            false
+        })
+    }
+
     fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>> {
         // TODO: to_file_name should return PathBuf
         let file_name = to_file_name(page_id);
@@ -82,6 +94,22 @@ mod tests {
     use tempfile::tempdir;
 
     use super::*;
+
+    #[test]
+    fn destroy_test() -> anyhow::Result<()> {
+        let temp_dir = tempdir()?;
+        let data_dir = temp_dir.path().to_path_buf();
+        let repository = FsPageRepository::new(data_dir.clone());
+
+        let page_id = PageId::from_str("20210203T040506Z")?;
+        assert_eq!(repository.destroy(&page_id)?, false);
+
+        let file_path = data_dir.join("20210203T040506Z.md");
+        fs::write(file_path.as_path(), "content")?;
+        assert_eq!(repository.destroy(&page_id)?, true);
+
+        Ok(())
+    }
 
     #[test]
     fn find_by_id_test() -> anyhow::Result<()> {

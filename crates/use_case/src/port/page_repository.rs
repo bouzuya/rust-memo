@@ -4,6 +4,8 @@ use mockall::automock;
 
 #[cfg_attr(test, automock)]
 pub trait PageRepository {
+    fn destroy(&self, page_id: &PageId) -> anyhow::Result<bool>;
+
     fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>>;
 
     // TODO: add tests
@@ -59,6 +61,10 @@ mod tests {
     fn load_page_graph_test() -> anyhow::Result<()> {
         struct TestRepository {}
         impl PageRepository for TestRepository {
+            fn destroy(&self, _: &PageId) -> anyhow::Result<bool> {
+                unreachable!()
+            }
+
             fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>> {
                 let page_id1 = PageId::from_str("20210203T040506Z")?;
                 let page_id2 = PageId::from_str("20210203T040507Z")?;
