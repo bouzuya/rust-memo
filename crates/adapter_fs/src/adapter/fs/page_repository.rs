@@ -28,6 +28,17 @@ impl FsPageRepository {
 }
 
 impl PageRepository for FsPageRepository {
+    fn destroy_cache(&self, page_id: &PageId) -> anyhow::Result<bool> {
+        let mut page_graph = self.page_graph.lock().unwrap(); // TODO
+                                                              // TODO: contains
+        if page_graph.title(page_id).is_some() {
+            page_graph.remove_page(page_id);
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
     fn destroy(&self, page_id: &PageId) -> anyhow::Result<bool> {
         // TODO: to_file_name should return PathBuf
         let file_name = to_file_name(page_id);
@@ -75,12 +86,15 @@ impl PageRepository for FsPageRepository {
         Ok(ids)
     }
 
-    fn save(&self, page: Page) -> anyhow::Result<()> {
-        // TODO: graph.remove_page(page) if exists
+    fn save_cache(&self, page: Page) -> anyhow::Result<()> {
+        self.destroy_cache(&page.id())?;
         let mut page_graph = self.page_graph.lock().unwrap(); // TODO
-        page_graph.add_page(page.clone());
-        // TODO: fix file watcher
+        page_graph.add_page(page);
+        Ok(())
+    }
 
+    fn save(&self, page: Page) -> anyhow::Result<()> {
+        self.save_cache(page.clone())?;
         let file_name = to_file_name(page.id());
         let file_name = self.data_dir.join(file_name.as_str());
         Ok(fs::write(file_name, String::from(page.content().clone()))?)

@@ -4,6 +4,8 @@ use mockall::automock;
 
 #[cfg_attr(test, automock)]
 pub trait PageRepository {
+    fn destroy_cache(&self, page_id: &PageId) -> anyhow::Result<bool>;
+
     fn destroy(&self, page_id: &PageId) -> anyhow::Result<bool>;
 
     fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>>;
@@ -40,6 +42,8 @@ pub trait PageRepository {
         Ok(page_graph)
     }
 
+    fn save_cache(&self, page: Page) -> anyhow::Result<()>;
+
     fn save(&self, page: Page) -> anyhow::Result<()>;
 }
 
@@ -61,6 +65,10 @@ mod tests {
     fn load_page_graph_test() -> anyhow::Result<()> {
         struct TestRepository {}
         impl PageRepository for TestRepository {
+            fn destroy_cache(&self, _: &PageId) -> anyhow::Result<bool> {
+                unreachable!()
+            }
+
             fn destroy(&self, _: &PageId) -> anyhow::Result<bool> {
                 unreachable!()
             }
@@ -92,6 +100,10 @@ mod tests {
                 let page_id1 = PageId::from_str("20210203T040506Z")?;
                 let page_id2 = PageId::from_str("20210203T040507Z")?;
                 Ok(vec![page_id1, page_id2])
+            }
+
+            fn save_cache(&self, _: Page) -> anyhow::Result<()> {
+                unreachable!()
             }
 
             fn save(&self, _: Page) -> anyhow::Result<()> {
