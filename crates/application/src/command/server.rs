@@ -8,7 +8,7 @@ use std::{
 use self::handler::{index, page, pages, title, title_pages, titles};
 use actix_web::web;
 use anyhow::Context as _;
-use entity::PageId;
+use entity::{Page, PageContent, PageId};
 use use_case::{HasListPagesUseCase, HasListTitlesUseCase, HasPageRepository, PageRepository};
 use watchexec::{
     config::{Config, ConfigBuilder},
@@ -72,9 +72,7 @@ pub async fn server<
 
 struct MyHandler<T>(ExecHandler, Arc<Mutex<T>>);
 
-impl<T: HasListTitlesUseCase + HasListPagesUseCase + HasPageRepository + Send + Sync + 'static>
-    Handler for MyHandler<T>
-{
+impl<T: HasPageRepository + Send + Sync + 'static> Handler for MyHandler<T> {
     fn on_manual(&self) -> Result<bool> {
         self.0.on_manual()
     }
@@ -93,34 +91,77 @@ impl<T: HasListTitlesUseCase + HasListPagesUseCase + HasPageRepository + Send + 
                         continue;
                     };
 
-                    if PathOp::is_create(o) {
-                        println!("on create: {:?}", page_id);
-                    }
-                    if PathOp::is_remove(o) {
-                        println!("on remove: {:?}", page_id);
-                    }
+                    let app = self.1.lock().map_err(|_| {
+                        watchexec::error::Error::Generic("failed to lock".to_string())
+                    })?;
+
                     if PathOp::is_rename(o) {
-                        println!("on rename: {:?}", page_id);
-                    }
-                    if PathOp::is_write(o) {
-                        println!("on write: {:?}", page_id);
-                    }
-                    if PathOp::is_meta(o) {
-                        println!("on meta: {:?}", page_id);
+                        if !op.path.exists() {
+                            println!("rename: {:?} (from)", page_id);
+                            app.page_repository().destroy_cache(&page_id).map_err(|_| {
+                                watchexec::error::Error::Generic("failed to destroy".to_string())
+                            })?;
+                        } else {
+                            println!("rename: {:?} (to)", page_id);
+                            let found = app
+                                .page_repository()
+                                .find_by_id(&page_id)
+                                .map_err(|_| {
+                                    watchexec::error::Error::Generic(
+                                        "failed to find by id".to_string(),
+                                    )
+                                })?
+                                .ok_or_else(|| {
+                                    watchexec::error::Error::Generic(
+                                        "failed to find by id".to_string(),
+                                    )
+                                })?;
+                            app.page_repository().save_cache(found).map_err(|_| {
+                                watchexec::error::Error::Generic("failed to save".to_string())
+                            })?;
+                        }
+                    } else {
+                        if PathOp::is_create(o) {
+                            println!("create: {:?}", page_id);
+                            app.page_repository()
+                                .save_cache(Page::new(page_id, PageContent::from("".to_string())))
+                                .map_err(|_| {
+                                    watchexec::error::Error::Generic("failed to save".to_string())
+                                })?;
+                        }
+                        if PathOp::is_remove(o) {
+                            println!("remove: {:?}", page_id);
+                            app.page_repository().destroy_cache(&page_id).map_err(|_| {
+                                watchexec::error::Error::Generic("failed to remove".to_string())
+                            })?;
+                        }
+                        if PathOp::is_write(o) {
+                            println!("on write: {:?}", page_id);
+                            let found = app
+                                .page_repository()
+                                .find_by_id(&page_id)
+                                .map_err(|_| {
+                                    watchexec::error::Error::Generic(
+                                        "failed to find by id".to_string(),
+                                    )
+                                })?
+                                .ok_or_else(|| {
+                                    watchexec::error::Error::Generic(
+                                        "failed to find by id".to_string(),
+                                    )
+                                })?;
+                            app.page_repository().save_cache(found).map_err(|_| {
+                                watchexec::error::Error::Generic("failed to save".to_string())
+                            })?;
+                        }
+                        if PathOp::is_meta(o) {
+                            println!("on meta: {:?}", page_id);
+                        }
                     }
 
                     println!("on update {:?} {:?}", o, page_id);
                 }
             }
-
-            // TODO: CREATE => add_page
-            // TODO: WRITE => remove_page -> add_page
-            // TODO: CHMOD => do nothing
-            // TODO: REMOVE => remove_page
-            // TODO: RENAME => remove_page -> add_page
-            // TODO: CLOSE_WRITE ...
-            // TODO: RESCAN      ...
-            println!("on update {:?}", ops);
         }
         self.0.on_update(ops)
     }
