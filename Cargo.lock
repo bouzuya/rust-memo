@@ -1823,7 +1823,7 @@ dependencies = [
 
 [[package]]
 name = "rust-memo"
-version = "0.16.9"
+version = "0.16.10"
 dependencies = [
  "actix-rt",
  "actix-web",
