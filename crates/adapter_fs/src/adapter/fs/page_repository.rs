@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use entity::{Page, PageContent, PageGraph, PageId};
+use entity::{Page, PageContent, PageGraph, PageId, PageTitle};
 use use_case::PageRepository;
 
 // TODO: returns PathBuf
@@ -63,6 +63,17 @@ impl PageRepository for FsPageRepository {
         } else {
             None
         })
+    }
+
+    // TODO: use iterator
+    fn find_by_title(&self, page_title: &PageTitle) -> anyhow::Result<Vec<Option<Page>>> {
+        self.page_graph
+            .lock()
+            .unwrap() // TODO
+            .titled(page_title)
+            .into_iter()
+            .map(|page_id| self.find_by_id(&page_id))
+            .collect::<anyhow::Result<Vec<Option<Page>>>>()
     }
 
     fn find_ids(&self) -> anyhow::Result<Vec<PageId>> {

@@ -1,4 +1,4 @@
-use entity::{ColumnNumber, LineNumber, Page, PageGraph, PageId, Query};
+use entity::{ColumnNumber, LineNumber, Page, PageGraph, PageId, PageTitle, Query};
 #[cfg(test)]
 use mockall::automock;
 
@@ -29,6 +29,8 @@ pub trait PageRepository {
         }
         Ok(res)
     }
+
+    fn find_by_title(&self, page_title: &PageTitle) -> anyhow::Result<Vec<Option<Page>>>;
 
     fn find_ids(&self) -> anyhow::Result<Vec<PageId>>;
 
@@ -94,6 +96,10 @@ mod tests {
                 } else {
                     unreachable!()
                 }
+            }
+
+            fn find_by_title(&self, _: &PageTitle) -> anyhow::Result<Vec<Option<Page>>> {
+                unreachable!()
             }
 
             fn find_ids(&self) -> anyhow::Result<Vec<PageId>> {
