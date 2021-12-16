@@ -25,8 +25,7 @@ pub async fn server<
     let page_repository = app.page_repository();
     for page_id in page_repository.find_ids()? {
         if let Some(page) = page_repository.find_by_id(&page_id)? {
-            // TODO: update page graph only
-            page_repository.save(page)?;
+            page_repository.save_cache(page)?;
         }
     }
 
