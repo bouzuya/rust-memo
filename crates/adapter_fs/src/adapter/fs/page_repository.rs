@@ -1,4 +1,5 @@
 use std::{
+    collections::BTreeSet,
     fs,
     path::PathBuf,
     str::FromStr,
@@ -63,6 +64,10 @@ impl PageRepository for FsPageRepository {
         } else {
             None
         })
+    }
+
+    fn find_by_obsoleted(&self, page_id: &PageId) -> BTreeSet<PageId> {
+        self.page_graph.lock().unwrap().obsoleted_by(page_id)
     }
 
     // TODO: use iterator

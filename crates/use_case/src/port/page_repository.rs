@@ -1,14 +1,18 @@
+use std::collections::BTreeSet;
+
 use entity::{ColumnNumber, LineNumber, Page, PageGraph, PageId, PageTitle, Query};
 #[cfg(test)]
 use mockall::automock;
 
 #[cfg_attr(test, automock)]
 pub trait PageRepository {
-    fn destroy_cache(&self, page_id: &PageId) -> anyhow::Result<bool>;
-
     fn destroy(&self, page_id: &PageId) -> anyhow::Result<bool>;
 
+    fn destroy_cache(&self, page_id: &PageId) -> anyhow::Result<bool>;
+
     fn find_by_id(&self, page_id: &PageId) -> anyhow::Result<Option<Page>>;
+
+    fn find_by_obsoleted(&self, page_id: &PageId) -> BTreeSet<PageId>;
 
     // TODO: add tests
     fn find_by_query(
@@ -44,9 +48,9 @@ pub trait PageRepository {
         Ok(page_graph)
     }
 
-    fn save_cache(&self, page: Page) -> anyhow::Result<()>;
-
     fn save(&self, page: Page) -> anyhow::Result<()>;
+
+    fn save_cache(&self, page: Page) -> anyhow::Result<()>;
 }
 
 pub trait HasPageRepository {
@@ -96,6 +100,10 @@ mod tests {
                 } else {
                     unreachable!()
                 }
+            }
+
+            fn find_by_obsoleted(&self, _: &PageId) -> BTreeSet<PageId> {
+                unreachable!()
             }
 
             fn find_by_title(&self, _: &PageTitle) -> anyhow::Result<Vec<Option<Page>>> {
