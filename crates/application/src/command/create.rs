@@ -3,7 +3,7 @@ use use_case::{HasNewPageUseCase, NewPageUseCase};
 
 use crate::helpers::to_file_name;
 
-pub fn new<App: HasNewPageUseCase>(app: App, title: Option<&str>) -> anyhow::Result<()> {
+pub fn create<App: HasNewPageUseCase>(app: App, title: Option<&str>) -> anyhow::Result<()> {
     let title = PageTitle::from(title.unwrap_or_default().to_string());
     let (new_page_id, already_exists) = app.new_page_use_case().new_page(title.clone())?;
     // TODO: use presenter
