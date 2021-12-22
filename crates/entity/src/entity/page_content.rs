@@ -21,6 +21,14 @@ fn broken_links(content: &str) -> BTreeSet<String> {
 }
 
 impl PageContent {
+    pub fn broken_links(&self) -> BTreeSet<PageTitle> {
+        let links = broken_links(self.0.as_str());
+        links
+            .into_iter()
+            .map(|s| PageTitle::from(s))
+            .collect::<BTreeSet<PageTitle>>()
+    }
+
     pub fn ensure_links(&mut self) {
         let links = broken_links(self.0.as_str());
         if links.is_empty() {
@@ -120,6 +128,19 @@ mod tests {
     use std::{iter::FromIterator, str::FromStr};
 
     use super::*;
+
+    #[test]
+    fn broken_links_test() {
+        assert_eq!(
+            PageContent::from("[foo] [bar]".to_string()).broken_links(),
+            {
+                let mut set = BTreeSet::new();
+                set.insert(PageTitle::from("foo".to_string()));
+                set.insert(PageTitle::from("bar".to_string()));
+                set
+            }
+        );
+    }
 
     #[test]
     fn broken_links_impl_test() {
