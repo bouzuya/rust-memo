@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use crate::{PageContent, PageId, PageLink, PageLinkTo, PageTitle};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -7,23 +9,26 @@ pub struct Page {
 }
 
 impl Page {
-    pub fn new(id: PageId, content: PageContent) -> Self {
-        Self { id, content }
-    }
-
-    pub fn id(&self) -> &PageId {
-        &self.id
-    }
-
-    pub fn title(&self) -> PageTitle {
-        self.content.title()
+    pub fn broken_links(&self) -> BTreeSet<PageTitle> {
+        self.content.broken_links()
     }
 
     pub fn content(&self) -> &PageContent {
         &self.content
     }
 
-    // TODO: pub fn broken_links(&self) -> Vec<PageTitle>
+    pub fn id(&self) -> &PageId {
+        &self.id
+    }
+
+    pub fn new(id: PageId, content: PageContent) -> Self {
+        Self { id, content }
+    }
+
+    pub fn title(&self) -> PageTitle {
+        self.content.title()
+    }
+
     // TODO: pub fn obsoleted(&self) -> bool
     // TODO: pub fn obsolete_links(&self) -> BTreeSet<PageId>
     // TODO: pub fn rev_obsolete_links(&self) -> BTreeSet<PageId>
@@ -45,6 +50,20 @@ mod tests {
     use crate::{PageContent, PageId, PageTitle};
 
     use super::*;
+
+    #[test]
+    fn broken_links_test() -> anyhow::Result<()> {
+        let id = PageId::from_str("20210203T040506Z")?;
+        let content = PageContent::from("# title1\n\n[foo] [bar]".to_string());
+        let page = Page::new(id, content.clone());
+        assert_eq!(page.broken_links(), {
+            let mut set = BTreeSet::new();
+            set.insert(PageTitle::from("foo".to_string()));
+            set.insert(PageTitle::from("bar".to_string()));
+            set
+        });
+        Ok(())
+    }
 
     #[test]
     fn new_test() -> anyhow::Result<()> {
