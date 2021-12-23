@@ -25,7 +25,7 @@ pub trait ListTitlesUseCase: HasPageRepository {
             }
         }
         // TODO: clone
-        title_items.sort_by_key(|(t, o, i)| (Reverse(i.clone()), t.clone(), o.clone()));
+        title_items.sort_by_key(|(t, o, i)| (Reverse(*i), t.clone(), *o));
 
         Ok(title_items
             .into_iter()

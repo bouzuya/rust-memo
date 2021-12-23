@@ -59,7 +59,7 @@ impl PageRepository for FsPageRepository {
         Ok(if file_name.exists() {
             fs::read_to_string(file_name)
                 .map(PageContent::from)
-                .map(|page_content| Page::new(page_id.clone(), page_content))
+                .map(|page_content| Page::new(*page_id, page_content))
                 .map(Some)?
         } else {
             None
@@ -103,7 +103,7 @@ impl PageRepository for FsPageRepository {
     }
 
     fn save_cache(&self, page: Page) -> anyhow::Result<()> {
-        self.destroy_cache(&page.id())?;
+        self.destroy_cache(page.id())?;
         let mut page_graph = self.page_graph.lock().unwrap(); // TODO
         page_graph.add_page(page);
         Ok(())
@@ -132,11 +132,11 @@ mod tests {
         let repository = FsPageRepository::new(data_dir.clone());
 
         let page_id = PageId::from_str("20210203T040506Z")?;
-        assert_eq!(repository.destroy(&page_id)?, false);
+        assert!(!repository.destroy(&page_id)?);
 
         let file_path = data_dir.join("20210203T040506Z.md");
         fs::write(file_path.as_path(), "content")?;
-        assert_eq!(repository.destroy(&page_id)?, true);
+        assert!(repository.destroy(&page_id)?);
 
         Ok(())
     }

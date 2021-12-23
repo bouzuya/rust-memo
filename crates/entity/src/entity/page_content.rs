@@ -25,7 +25,7 @@ impl PageContent {
         let links = broken_links(self.0.as_str());
         links
             .into_iter()
-            .map(|s| PageTitle::from(s))
+            .map(PageTitle::from)
             .collect::<BTreeSet<PageTitle>>()
     }
 

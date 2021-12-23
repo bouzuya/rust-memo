@@ -29,10 +29,8 @@ impl Page {
         self.content.title()
     }
 
-    // TODO: pub fn obsoleted(&self) -> bool
-    // TODO: pub fn obsolete_links(&self) -> BTreeSet<PageId>
-    // TODO: pub fn rev_obsolete_links(&self) -> BTreeSet<PageId>
-    // TODO: pub fn rev_title_links(&self) -> BTreeSet<PageId>
+    // TODO: pub fn rev_page_links(&self) -> BTreeSet<PageId>; // PageId -> PageGraph -> BTreeSet<PageId>
+    // TODO: pub fn rev_title_links(&self) -> BTreeSet<PageId>; // PageTitle -> PageGraph -> BTreeSet<PageId>
 
     pub fn title_links(&self) -> Vec<PageLink> {
         self.content
@@ -55,7 +53,7 @@ mod tests {
     fn broken_links_test() -> anyhow::Result<()> {
         let id = PageId::from_str("20210203T040506Z")?;
         let content = PageContent::from("# title1\n\n[foo] [bar]".to_string());
-        let page = Page::new(id, content.clone());
+        let page = Page::new(id, content);
         assert_eq!(page.broken_links(), {
             let mut set = BTreeSet::new();
             set.insert(PageTitle::from("foo".to_string()));

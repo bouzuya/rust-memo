@@ -13,7 +13,7 @@ pub trait EnsureLinksUseCase: HasPageRepository {
             let mut page_content = page.content().clone(); // TODO: add Page::ensure_links
             page_content.ensure_links();
             self.page_repository()
-                .save(Page::new(page.id().clone(), page_content))?;
+                .save(Page::new(*page.id(), page_content))?;
             Ok(())
         };
         match page_id {
