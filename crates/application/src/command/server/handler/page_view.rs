@@ -18,7 +18,7 @@ struct MyError(String);
 
 impl ResponseError for MyError {}
 
-pub async fn page<T: HasPageRepository>(
+pub async fn page_view<T: HasPageRepository>(
     req: actix_web::HttpRequest,
     data: web::Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {

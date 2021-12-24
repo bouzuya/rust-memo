@@ -5,7 +5,9 @@ use std::{
     thread,
 };
 
-use self::handler::{index, page, page_create, page_list, page_update, title, title_pages, titles};
+use self::handler::{
+    index, page_create, page_list, page_update, page_view, title, title_pages, titles,
+};
 use actix_web::web;
 use anyhow::Context as _;
 use entity::{Page, PageContent, PageId};
@@ -53,7 +55,7 @@ pub async fn server<
             .route("/", web::get().to(index))
             .route("/pages", web::get().to(page_list::<T>))
             .route("/pages", web::post().to(page_create::<T>))
-            .route("/pages/{id}", web::get().to(page::<T>))
+            .route("/pages/{id}", web::get().to(page_view::<T>))
             .route("/pages/{id}", web::patch().to(page_update::<T>))
             .route("/titles", web::get().to(titles::<T>))
             .route("/titles/{title}", web::get().to(title::<T>))
