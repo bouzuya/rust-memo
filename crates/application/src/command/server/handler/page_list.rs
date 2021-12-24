@@ -8,7 +8,7 @@ use askama::Template;
 use entity::PagePath;
 use use_case::{HasListPagesUseCase, ListPagesUseCase};
 
-pub async fn pages<T: HasListPagesUseCase>(
+pub async fn page_list<T: HasListPagesUseCase>(
     req: actix_web::HttpRequest,
     data: Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {
