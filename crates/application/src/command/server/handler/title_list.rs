@@ -8,7 +8,7 @@ use askama::Template;
 use entity::TitlePath;
 use use_case::{HasListTitlesUseCase, ListTitlesUseCase};
 
-pub async fn titles<T: HasListTitlesUseCase>(
+pub async fn title_list<T: HasListTitlesUseCase>(
     req: actix_web::HttpRequest,
     data: web::Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {
