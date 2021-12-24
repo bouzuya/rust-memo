@@ -6,7 +6,7 @@ use std::{
 };
 
 use self::handler::{
-    index, page_create, page_list, page_update, page_view, title, title_list, title_pages,
+    index, page_create, page_list, page_update, page_view, title_list, title_page_list, title_view,
 };
 use actix_web::web;
 use anyhow::Context as _;
@@ -58,8 +58,8 @@ pub async fn server<
             .route("/pages/{id}", web::get().to(page_view::<T>))
             .route("/pages/{id}", web::patch().to(page_update::<T>))
             .route("/titles", web::get().to(title_list::<T>))
-            .route("/titles/{title}", web::get().to(title::<T>))
-            .route("/titles/{title}/pages", web::get().to(title_pages::<T>))
+            .route("/titles/{title}", web::get().to(title_view::<T>))
+            .route("/titles/{title}/pages", web::get().to(title_page_list::<T>))
     });
     server = if let Some(l) = listenfd.take_tcp_listener(0)? {
         server.listen(l)?

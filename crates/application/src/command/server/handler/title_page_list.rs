@@ -6,7 +6,7 @@ use askama::Template;
 use entity::{PagePath, PageTitle, TitlePath};
 use use_case::{HasPageRepository, PageRepository};
 
-pub async fn title_pages<T: HasPageRepository>(
+pub async fn title_page_list<T: HasPageRepository>(
     req: actix_web::HttpRequest,
     data: web::Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {
