@@ -7,7 +7,7 @@ use askama::Template;
 use entity::{PageId, PagePath, PageTitle, TitlePath};
 use use_case::{HasPageRepository, PageRepository};
 
-pub async fn title<T: HasPageRepository>(
+pub async fn title_view<T: HasPageRepository>(
     req: actix_web::HttpRequest,
     data: web::Data<Arc<Mutex<T>>>,
 ) -> actix_web::Result<HttpResponse> {
